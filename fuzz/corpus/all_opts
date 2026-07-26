@@ -1,1 +1,1 @@
--v -o report -r resource-tracker -t p101-trace -- ./prog arg
+-v -o report -r p101-resource-tracker -t p101-trace -- ./prog arg

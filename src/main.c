@@ -81,7 +81,7 @@ static size_t         resource_finding_count(const struct resource_summary *summ
 _Noreturn static void usage(const struct p101_env *env, struct p101_error *err, const char *program_name, int exit_code, const char *message);
 
 static const char DEFAULT_REPORT_PREFIX[] = "p101-observe";
-static const char DEFAULT_TRACKER_PATH[]  = "resource-tracker";
+static const char DEFAULT_TRACKER_PATH[]  = "p101-resource-tracker";
 static const char DEFAULT_TRACE_PATH[]    = "p101-trace";
 static const char RESOURCE_LOG_ENV[]      = "P101_RESOURCE_LOG";
 static const char CALL_LOG_ENV[]          = "P101_CALL_LOG";
@@ -255,7 +255,7 @@ static void check_arguments(const struct p101_env *env, struct p101_error *err, 
 
     if(args->resource_tracker == NULL || args->resource_tracker[0] == '\0')
     {
-        P101_ERROR_RAISE_USER(err, "The resource-tracker path must not be empty.", ERR_USAGE);
+        P101_ERROR_RAISE_USER(err, "The p101-resource-tracker path must not be empty.", ERR_USAGE);
         goto done;
     }
 
@@ -508,8 +508,8 @@ static void write_summary_file(const struct p101_env *env, struct p101_error *er
     p101_fprintf(env, err, stream, "command: %s\n", args->command_argv[0]);
     p101_fprintf(env, err, stream, "report_dir: %s\n\n", paths->dir);
     print_status(env, err, stream, "command", result->command_status);
-    print_status(env, err, stream, "resource-tracker", result->resource_status);
-    print_status(env, err, stream, "resource-tracker-json", result->resource_json_status);
+    print_status(env, err, stream, "p101-resource-tracker", result->resource_status);
+    print_status(env, err, stream, "p101-resource-tracker-json", result->resource_json_status);
     print_status(env, err, stream, "p101-trace-tree", result->trace_tree_status);
     print_status(env, err, stream, "p101-trace-summary", result->trace_summary_status);
 
@@ -823,13 +823,13 @@ _Noreturn static void usage(const struct p101_env *env, struct p101_error *err, 
         p101_fprintf(env, err, stderr, "%s\n\n", message);
     }
 
-    p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-o <report-dir>] [-r <resource-tracker>] [-t <p101-trace>] -- <command> [args...]\n", program_name);
+    p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-o <report-dir>] [-r <p101-resource-tracker>] [-t <p101-trace>] -- <command> [args...]\n", program_name);
     p101_fputs(env, err, "Options:\n", stderr);
     p101_fputs(env, err, "  -h                       Display this help message and exit\n", stderr);
     p101_fputs(env, err, "  -v                       Enable verbose p101 tracing in p101-observe\n", stderr);
     p101_fputs(env, err, "  -o <report-dir>          Directory to create for the report\n", stderr);
     p101_fputs(env, err, "                           (default: p101-observe-<pid>)\n", stderr);
-    p101_fputs(env, err, "  -r <resource-tracker>    resource-tracker executable (default: PATH lookup)\n", stderr);
+    p101_fputs(env, err, "  -r <p101-resource-tracker>    p101-resource-tracker executable (default: PATH lookup)\n", stderr);
     p101_fputs(env, err, "  -t <p101-trace>          p101-trace executable (default: PATH lookup)\n", stderr);
     p101_fputs(env, err, "\nThe child should use p101_env_create() from an updated lib_env build.\n", stderr);
 #else

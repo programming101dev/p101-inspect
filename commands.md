@@ -9,7 +9,7 @@ Run `./change-compiler.sh -c <compiler>` once before building.
 | --- | --- |
 | `p101-observe -- ./prog` | Run `./prog`, collect p101 resource/call logs, and build a report directory |
 | `p101-observe -o report -- ./prog arg` | Write the report to `report/` |
-| `p101-observe -r ../resource-tracker/build-clang/resource-tracker -- ./prog` | Use an in-tree resource-tracker build |
+| `p101-observe -r ../p101-resource-tracker/build-clang/p101-resource-tracker -- ./prog` | Use an in-tree p101-resource-tracker build |
 | `p101-observe -t ../p101-trace/build-clang/p101-trace -- ./prog` | Use an in-tree p101-trace build |
 | `p101-observe -v -- ./prog` | Verbose: trace `p101-observe` itself |
 

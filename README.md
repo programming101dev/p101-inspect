@@ -2,7 +2,7 @@
 
 `p101-observe` is the front door for the Programming 101 runtime tools. It runs
 one command with p101 resource and call logging enabled, captures the command's
-output, runs `resource-tracker` and `p101-trace`, and leaves a small report
+output, runs `p101-resource-tracker` and `p101-trace`, and leaves a small report
 directory behind.
 
 It does not replace the lower-level tools. It bundles their ordinary workflow so
@@ -11,12 +11,12 @@ commands.
 
 ## Usage
 
-    p101-observe [-h] [-v] [-o <report-dir>] [-r <resource-tracker>] [-t <p101-trace>] -- <command> [args...]
+    p101-observe [-h] [-v] [-o <report-dir>] [-r <p101-resource-tracker>] [-t <p101-trace>] -- <command> [args...]
 
 Examples:
 
     p101-observe -- ./my-program config.txt
-    p101-observe -o run-report -r ../resource-tracker/build-clang/resource-tracker -t ../p101-trace/build-clang/p101-trace -- ./my-program
+    p101-observe -o run-report -r ../p101-resource-tracker/build-clang/p101-resource-tracker -t ../p101-trace/build-clang/p101-trace -- ./my-program
 
 With no `-o`, the report directory is `p101-observe-<pid>` in the current
 directory. The directory must not already exist.
@@ -54,7 +54,7 @@ target program rather than the launcher setup.
 | Status | Meaning |
 | --- | --- |
 | `0` | The command exited `0`, the reports were produced, and no resource findings were parsed |
-| `1` | The command failed or `resource-tracker` reported resource findings |
+| `1` | The command failed or `p101-resource-tracker` reported resource findings |
 | `2` | `p101-observe` could not create/run the report workflow |
 
 ## The workflow
