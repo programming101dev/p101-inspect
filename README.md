@@ -37,6 +37,7 @@ directory. The directory must not already exist.
     trace-summary.txt
     trace-tools.stderr.txt
     correlated-report.txt
+    correlated-report.json
     report-tools.stderr.txt
     summary.txt
 

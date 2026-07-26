@@ -42,6 +42,7 @@ struct report_paths
     char trace_summary[PATH_LEN];
     char trace_stderr[PATH_LEN];
     char correlated_report[PATH_LEN];
+    char correlated_json[PATH_LEN];
     char report_stderr[PATH_LEN];
     char summary[PATH_LEN];
 };
@@ -54,6 +55,7 @@ struct observe_result
     int                     trace_tree_status;
     int                     trace_summary_status;
     int                     report_status;
+    int                     report_json_status;
     struct resource_summary resources;
 };
 
@@ -294,6 +296,7 @@ static int run_observe(const struct p101_env *env, struct p101_error *err, const
     char                 *trace_tree_argv[3];
     char                 *trace_summary_argv[4];
     char                 *report_argv[3];
+    char                 *report_json_argv[4];
     char                  json_option[]    = "-j";
     char                  summary_option[] = "-s";
     char                  resource_tracker_path[PATH_LEN];
@@ -408,6 +411,17 @@ static int run_observe(const struct p101_env *env, struct p101_error *err, const
         goto done;
     }
 
+    report_json_argv[0]       = report_path;
+    report_json_argv[1]       = json_option;
+    report_json_argv[2]       = paths.dir;
+    report_json_argv[3]       = NULL;
+    result.report_json_status = run_tool_capture(env, err, report_json_argv, paths.correlated_json, paths.report_stderr);
+
+    if(p101_error_has_error(err))
+    {
+        goto done;
+    }
+
     write_summary_file(env, err, args, &paths, &result);
 
     if(p101_error_has_error(err))
@@ -418,7 +432,7 @@ static int run_observe(const struct p101_env *env, struct p101_error *err, const
     p101_printf(env, err, "p101-observe: wrote report to %s\n", paths.dir);
 
     if(!tool_status_is_acceptable(result.resource_status) || !tool_status_is_acceptable(result.resource_json_status) || !tool_status_is_acceptable(result.trace_tree_status) || !tool_status_is_acceptable(result.trace_summary_status) ||
-       !tool_status_is_acceptable(result.report_status))
+       !tool_status_is_acceptable(result.report_status) || !tool_status_is_acceptable(result.report_json_status))
     {
         ret_val = EXIT_TROUBLE;
         goto done;
@@ -462,6 +476,7 @@ static void make_report_paths(const struct p101_env *env, struct p101_error *err
     join_path(env, err, paths->trace_summary, paths->dir, "trace-summary.txt");
     join_path(env, err, paths->trace_stderr, paths->dir, "trace-tools.stderr.txt");
     join_path(env, err, paths->correlated_report, paths->dir, "correlated-report.txt");
+    join_path(env, err, paths->correlated_json, paths->dir, "correlated-report.json");
     join_path(env, err, paths->report_stderr, paths->dir, "report-tools.stderr.txt");
     join_path(env, err, paths->summary, paths->dir, "summary.txt");
 }
@@ -546,6 +561,7 @@ static void write_summary_file(const struct p101_env *env, struct p101_error *er
     print_status(env, err, stream, "p101-trace-tree", result->trace_tree_status);
     print_status(env, err, stream, "p101-trace-summary", result->trace_summary_status);
     print_status(env, err, stream, "p101-report", result->report_status);
+    print_status(env, err, stream, "p101-report-json", result->report_json_status);
 
     if(result->resources.parsed)
     {
@@ -568,6 +584,7 @@ static void write_summary_file(const struct p101_env *env, struct p101_error *er
     p101_fprintf(env, err, stream, "  trace_summary: %s\n", paths->trace_summary);
     p101_fprintf(env, err, stream, "  trace_tools_stderr: %s\n", paths->trace_stderr);
     p101_fprintf(env, err, stream, "  correlated_report: %s\n", paths->correlated_report);
+    p101_fprintf(env, err, stream, "  correlated_json: %s\n", paths->correlated_json);
     p101_fprintf(env, err, stream, "  report_tools_stderr: %s\n", paths->report_stderr);
 
 done:
