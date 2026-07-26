@@ -1,11 +1,13 @@
-#define main p101_test_unused_main
-#include "../src/main.c"
-#undef main
-
+#include "cli.h"
+#include "constants.h"
+#include "errors.h"
+#include "paths.h"
+#include "resource.h"
 #include "unity.h"
 #include <p101_c/p101_string.h>
 #include <p101_env/env.h>
 #include <p101_error/error.h>
+#include <p101_posix/p101_unistd.h>
 #include <stdbool.h>
 
 static struct p101_error *error;
@@ -45,8 +47,8 @@ static void test_parse_accepts_report_tools_and_command(void)
     args.p101_trace       = DEFAULT_TRACE_PATH;
     args.p101_report      = DEFAULT_REPORT_PATH;
 
-    parse_arguments(env, error, 12, argv, &args);
-    check_arguments(env, error, &args);
+    p101_observe_parse_arguments(env, error, 12, argv, &args);
+    p101_observe_check_arguments(env, error, &args);
 
     TEST_ASSERT_FALSE(p101_error_has_error(error));
     TEST_ASSERT_EQUAL_STRING("report", args.report_dir);
@@ -68,8 +70,8 @@ static void test_parse_rejects_missing_command(void)
     args.p101_trace       = DEFAULT_TRACE_PATH;
     args.p101_report      = DEFAULT_REPORT_PATH;
 
-    parse_arguments(env, error, 3, argv, &args);
-    check_arguments(env, error, &args);
+    p101_observe_parse_arguments(env, error, 3, argv, &args);
+    p101_observe_check_arguments(env, error, &args);
 
     TEST_ASSERT_TRUE(p101_error_is_error(error, P101_ERROR_USER, ERR_USAGE));
 }
@@ -85,8 +87,8 @@ static void test_parse_rejects_empty_reporter(void)
     args.p101_trace       = DEFAULT_TRACE_PATH;
     args.p101_report      = DEFAULT_REPORT_PATH;
 
-    parse_arguments(env, error, 5, argv, &args);
-    check_arguments(env, error, &args);
+    p101_observe_parse_arguments(env, error, 5, argv, &args);
+    p101_observe_check_arguments(env, error, &args);
 
     TEST_ASSERT_TRUE(p101_error_is_error(error, P101_ERROR_USER, ERR_USAGE));
 }
@@ -98,7 +100,7 @@ static void test_parse_resource_summary_accepts_tracker_json(void)
 
     p101_memset(env, &summary, 0, sizeof(summary));
 
-    TEST_ASSERT_TRUE(parse_resource_summary(env, json, &summary));
+    TEST_ASSERT_TRUE(p101_observe_parse_resource_summary(env, json, &summary));
     TEST_ASSERT_TRUE(summary.parsed);
     TEST_ASSERT_EQUAL_UINT(7U, summary.records);
     TEST_ASSERT_EQUAL_UINT(1U, summary.fd_leaks);
@@ -115,7 +117,7 @@ static void test_join_path_rejects_long_paths(void)
     p101_memset(env, long_dir, 'a', sizeof(long_dir));
     long_dir[sizeof(long_dir) - 1U] = '\0';
 
-    join_path(env, error, destination, long_dir, "file.txt");
+    p101_observe_join_path(env, error, destination, long_dir, "file.txt");
 
     TEST_ASSERT_TRUE(p101_error_is_error(error, P101_ERROR_USER, ERR_USAGE));
 }

@@ -30,12 +30,25 @@ set(LIBRARY_TARGETS "")
 set(main_OUTPUT_NAME p101-observe)
 
 set(main_SOURCES
+        src/cli.c
         src/main.c
+        src/paths.c
+        src/report.c
+        src/resource.c
+        src/runner.c
+        src/status.c
 )
 
 set(main_HEADERS
         include/arguments.h
+        include/cli.h
+        include/constants.h
         include/errors.h
+        include/paths.h
+        include/report.h
+        include/resource.h
+        include/runner.h
+        include/status.h
 )
 
 set(main_LINK_LIBRARIES
