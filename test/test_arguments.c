@@ -36,21 +36,23 @@ static void reset_getopt(void)
 
 static void test_parse_accepts_report_tools_and_command(void)
 {
-    char            *argv[] = {"p101-observe", "-o", "report", "-r", "rt", "-t", "trace", "--", "prog", "arg", NULL};
+    char            *argv[] = {"p101-observe", "-o", "report", "-r", "rt", "-t", "trace", "-p", "reporter", "--", "prog", "arg", NULL};
     struct arguments args;
 
     reset_getopt();
     p101_memset(env, &args, 0, sizeof(args));
     args.resource_tracker = DEFAULT_TRACKER_PATH;
     args.p101_trace       = DEFAULT_TRACE_PATH;
+    args.p101_report      = DEFAULT_REPORT_PATH;
 
-    parse_arguments(env, error, 10, argv, &args);
+    parse_arguments(env, error, 12, argv, &args);
     check_arguments(env, error, &args);
 
     TEST_ASSERT_FALSE(p101_error_has_error(error));
     TEST_ASSERT_EQUAL_STRING("report", args.report_dir);
     TEST_ASSERT_EQUAL_STRING("rt", args.resource_tracker);
     TEST_ASSERT_EQUAL_STRING("trace", args.p101_trace);
+    TEST_ASSERT_EQUAL_STRING("reporter", args.p101_report);
     TEST_ASSERT_EQUAL_STRING("prog", args.command_argv[0]);
     TEST_ASSERT_EQUAL_STRING("arg", args.command_argv[1]);
 }
@@ -64,8 +66,26 @@ static void test_parse_rejects_missing_command(void)
     p101_memset(env, &args, 0, sizeof(args));
     args.resource_tracker = DEFAULT_TRACKER_PATH;
     args.p101_trace       = DEFAULT_TRACE_PATH;
+    args.p101_report      = DEFAULT_REPORT_PATH;
 
     parse_arguments(env, error, 3, argv, &args);
+    check_arguments(env, error, &args);
+
+    TEST_ASSERT_TRUE(p101_error_is_error(error, P101_ERROR_USER, ERR_USAGE));
+}
+
+static void test_parse_rejects_empty_reporter(void)
+{
+    char            *argv[] = {"p101-observe", "-p", "", "--", "prog", NULL};
+    struct arguments args;
+
+    reset_getopt();
+    p101_memset(env, &args, 0, sizeof(args));
+    args.resource_tracker = DEFAULT_TRACKER_PATH;
+    args.p101_trace       = DEFAULT_TRACE_PATH;
+    args.p101_report      = DEFAULT_REPORT_PATH;
+
+    parse_arguments(env, error, 5, argv, &args);
     check_arguments(env, error, &args);
 
     TEST_ASSERT_TRUE(p101_error_is_error(error, P101_ERROR_USER, ERR_USAGE));
@@ -105,6 +125,7 @@ int main(void)
     UNITY_BEGIN();
     RUN_TEST(test_parse_accepts_report_tools_and_command);
     RUN_TEST(test_parse_rejects_missing_command);
+    RUN_TEST(test_parse_rejects_empty_reporter);
     RUN_TEST(test_parse_resource_summary_accepts_tracker_json);
     RUN_TEST(test_join_path_rejects_long_paths);
     return UNITY_END();

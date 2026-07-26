@@ -41,6 +41,8 @@ struct report_paths
     char trace_tree[PATH_LEN];
     char trace_summary[PATH_LEN];
     char trace_stderr[PATH_LEN];
+    char correlated_report[PATH_LEN];
+    char report_stderr[PATH_LEN];
     char summary[PATH_LEN];
 };
 
@@ -51,6 +53,7 @@ struct observe_result
     int                     resource_json_status;
     int                     trace_tree_status;
     int                     trace_summary_status;
+    int                     report_status;
     struct resource_summary resources;
 };
 
@@ -83,6 +86,7 @@ _Noreturn static void usage(const struct p101_env *env, struct p101_error *err, 
 static const char DEFAULT_REPORT_PREFIX[] = "p101-observe";
 static const char DEFAULT_TRACKER_PATH[]  = "p101-resource-tracker";
 static const char DEFAULT_TRACE_PATH[]    = "p101-trace";
+static const char DEFAULT_REPORT_PATH[]   = "p101-report";
 static const char RESOURCE_LOG_ENV[]      = "P101_RESOURCE_LOG";
 static const char CALL_LOG_ENV[]          = "P101_CALL_LOG";
 static const char CALL_LOG_ARGS_ENV[]     = "P101_CALL_LOG_ARGS";
@@ -118,6 +122,7 @@ int main(int argc, char *argv[])
     p101_memset(env, &args, 0, sizeof(args));
     args.resource_tracker = DEFAULT_TRACKER_PATH;
     args.p101_trace       = DEFAULT_TRACE_PATH;
+    args.p101_report      = DEFAULT_REPORT_PATH;
 
     parse_arguments(env, err, argc, argv, &args);
 
@@ -168,7 +173,7 @@ static void parse_arguments(const struct p101_env *env, struct p101_error *err, 
     P101_TRACE(env);
     opterr = 0;
 
-    while((opt = p101_getopt(env, argc, argv, ":hvo:r:t:")) != -1 && p101_error_has_no_error(err))
+    while((opt = p101_getopt(env, argc, argv, ":hvo:r:t:p:")) != -1 && p101_error_has_no_error(err))
     {
         switch(opt)
         {
@@ -194,6 +199,11 @@ static void parse_arguments(const struct p101_env *env, struct p101_error *err, 
             case 't':
             {
                 args->p101_trace = optarg;
+                break;
+            }
+            case 'p':
+            {
+                args->p101_report = optarg;
                 break;
             }
             case ':':
@@ -265,6 +275,12 @@ static void check_arguments(const struct p101_env *env, struct p101_error *err, 
         goto done;
     }
 
+    if(args->p101_report == NULL || args->p101_report[0] == '\0')
+    {
+        P101_ERROR_RAISE_USER(err, "The p101-report path must not be empty.", ERR_USAGE);
+        goto done;
+    }
+
 done:
     return;
 }
@@ -277,10 +293,12 @@ static int run_observe(const struct p101_env *env, struct p101_error *err, const
     char                 *resource_json_argv[4];
     char                 *trace_tree_argv[3];
     char                 *trace_summary_argv[4];
+    char                 *report_argv[3];
     char                  json_option[]    = "-j";
     char                  summary_option[] = "-s";
     char                  resource_tracker_path[PATH_LEN];
     char                  trace_path[PATH_LEN];
+    char                  report_path[PATH_LEN];
     int                   ret_val;
 
     P101_TRACE(env);
@@ -321,6 +339,8 @@ static int run_observe(const struct p101_env *env, struct p101_error *err, const
     resource_tracker_path[sizeof(resource_tracker_path) - 1U] = '\0';
     p101_strncpy(env, trace_path, args->p101_trace, sizeof(trace_path) - 1U);
     trace_path[sizeof(trace_path) - 1U] = '\0';
+    p101_strncpy(env, report_path, args->p101_report, sizeof(report_path) - 1U);
+    report_path[sizeof(report_path) - 1U] = '\0';
 
     result.command_status = run_observed_command(env, err, args, &paths);
 
@@ -378,6 +398,16 @@ static int run_observe(const struct p101_env *env, struct p101_error *err, const
         goto done;
     }
 
+    report_argv[0]       = report_path;
+    report_argv[1]       = paths.dir;
+    report_argv[2]       = NULL;
+    result.report_status = run_tool_capture(env, err, report_argv, paths.correlated_report, paths.report_stderr);
+
+    if(p101_error_has_error(err))
+    {
+        goto done;
+    }
+
     write_summary_file(env, err, args, &paths, &result);
 
     if(p101_error_has_error(err))
@@ -387,7 +417,8 @@ static int run_observe(const struct p101_env *env, struct p101_error *err, const
 
     p101_printf(env, err, "p101-observe: wrote report to %s\n", paths.dir);
 
-    if(!tool_status_is_acceptable(result.resource_status) || !tool_status_is_acceptable(result.resource_json_status) || !tool_status_is_acceptable(result.trace_tree_status) || !tool_status_is_acceptable(result.trace_summary_status))
+    if(!tool_status_is_acceptable(result.resource_status) || !tool_status_is_acceptable(result.resource_json_status) || !tool_status_is_acceptable(result.trace_tree_status) || !tool_status_is_acceptable(result.trace_summary_status) ||
+       !tool_status_is_acceptable(result.report_status))
     {
         ret_val = EXIT_TROUBLE;
         goto done;
@@ -430,6 +461,8 @@ static void make_report_paths(const struct p101_env *env, struct p101_error *err
     join_path(env, err, paths->trace_tree, paths->dir, "trace-tree.txt");
     join_path(env, err, paths->trace_summary, paths->dir, "trace-summary.txt");
     join_path(env, err, paths->trace_stderr, paths->dir, "trace-tools.stderr.txt");
+    join_path(env, err, paths->correlated_report, paths->dir, "correlated-report.txt");
+    join_path(env, err, paths->report_stderr, paths->dir, "report-tools.stderr.txt");
     join_path(env, err, paths->summary, paths->dir, "summary.txt");
 }
 
@@ -512,6 +545,7 @@ static void write_summary_file(const struct p101_env *env, struct p101_error *er
     print_status(env, err, stream, "p101-resource-tracker-json", result->resource_json_status);
     print_status(env, err, stream, "p101-trace-tree", result->trace_tree_status);
     print_status(env, err, stream, "p101-trace-summary", result->trace_summary_status);
+    print_status(env, err, stream, "p101-report", result->report_status);
 
     if(result->resources.parsed)
     {
@@ -529,8 +563,12 @@ static void write_summary_file(const struct p101_env *env, struct p101_error *er
     p101_fprintf(env, err, stream, "  calls: %s\n", paths->call_log);
     p101_fprintf(env, err, stream, "  resource_report: %s\n", paths->resource_report);
     p101_fprintf(env, err, stream, "  resource_json: %s\n", paths->resource_json);
+    p101_fprintf(env, err, stream, "  resource_tools_stderr: %s\n", paths->resource_stderr);
     p101_fprintf(env, err, stream, "  trace_tree: %s\n", paths->trace_tree);
     p101_fprintf(env, err, stream, "  trace_summary: %s\n", paths->trace_summary);
+    p101_fprintf(env, err, stream, "  trace_tools_stderr: %s\n", paths->trace_stderr);
+    p101_fprintf(env, err, stream, "  correlated_report: %s\n", paths->correlated_report);
+    p101_fprintf(env, err, stream, "  report_tools_stderr: %s\n", paths->report_stderr);
 
 done:
     if(stream != NULL)
@@ -823,7 +861,7 @@ _Noreturn static void usage(const struct p101_env *env, struct p101_error *err, 
         p101_fprintf(env, err, stderr, "%s\n\n", message);
     }
 
-    p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-o <report-dir>] [-r <p101-resource-tracker>] [-t <p101-trace>] -- <command> [args...]\n", program_name);
+    p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-o <report-dir>] [-r <p101-resource-tracker>] [-t <p101-trace>] [-p <p101-report>] -- <command> [args...]\n", program_name);
     p101_fputs(env, err, "Options:\n", stderr);
     p101_fputs(env, err, "  -h                       Display this help message and exit\n", stderr);
     p101_fputs(env, err, "  -v                       Enable verbose p101 tracing in p101-observe\n", stderr);
@@ -831,6 +869,7 @@ _Noreturn static void usage(const struct p101_env *env, struct p101_error *err, 
     p101_fputs(env, err, "                           (default: p101-observe-<pid>)\n", stderr);
     p101_fputs(env, err, "  -r <p101-resource-tracker>    p101-resource-tracker executable (default: PATH lookup)\n", stderr);
     p101_fputs(env, err, "  -t <p101-trace>          p101-trace executable (default: PATH lookup)\n", stderr);
+    p101_fputs(env, err, "  -p <p101-report>         p101-report executable (default: PATH lookup)\n", stderr);
     p101_fputs(env, err, "\nThe child should use p101_env_create() from an updated lib_env build.\n", stderr);
 #else
     (void)message;
