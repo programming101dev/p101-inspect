@@ -8,6 +8,7 @@
 #include <p101_posix/p101_unistd.h>
 #include <p101_posix/sys/p101_stat.h>
 #include <p101_posix/sys/p101_utsname.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <sys/utsname.h>
 #include <time.h>
@@ -108,21 +109,39 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     FILE          *stream;
     struct utsname host;
     time_t         generated_at;
+    bool           have_time;
     int            have_host;
 
     P101_TRACE(env);
-    stream       = p101_fopen(env, err, path, "w");
-    generated_at = p101_time(env, err, NULL);
-    have_host    = p101_uname(env, err, &host);
+    stream = p101_fopen(env, err, path, "w");
 
     if(stream == NULL)
     {
         goto done;
     }
 
+    generated_at = p101_time(env, err, NULL);
+    have_time    = p101_error_has_no_error(err);
+
+    if(!have_time)
+    {
+        p101_error_reset(err);
+        generated_at = (time_t)0;
+    }
+
+    have_host = p101_uname(env, err, &host);
+
+    if(have_host != 0)
+    {
+        p101_error_reset(err);
+    }
+
     p101_fputs(env, err, "p101-observe manifest\n", stream);
     p101_fputs(env, err, "event_schema=p101-event-format-v1\n", stream);
-    p101_fprintf(env, err, stream, "generated_at_unix=%jd\n", (intmax_t)generated_at);
+    if(have_time)
+    {
+        p101_fprintf(env, err, stream, "generated_at_unix=%jd\n", (intmax_t)generated_at);
+    }
     if(have_host == 0)
     {
         p101_fprintf(env, err, stream, "host_sysname=%s\n", host.sysname);

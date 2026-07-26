@@ -34,8 +34,16 @@ Fork events:
 P101FORK<TAB>1<TAB>parent-pid<TAB>child-pid<TAB>line<TAB>function<TAB>file
 ```
 
+Exec-boundary descriptor snapshots:
+
+```text
+P101EXEC<TAB>1<TAB>pid<TAB>fd<TAB>cloexec<TAB>line<TAB>function<TAB>file<TAB>target
+```
+
 `new_ptr` is `-` when there is no second pointer. Pointer strings are opaque
-because `%p` is platform formatted. `file` is intentionally last.
+because `%p` is platform formatted. `cloexec` is `0` when `FD_CLOEXEC` is off
+and `1` when it is on. `target` is the path/file argument passed to the exec
+wrapper. Fields that may contain control characters are escaped by `lib_env`.
 
 ## Call records
 
