@@ -1,11 +1,16 @@
 #include "paths.h"
 #include "constants.h"
 #include "errors.h"
+#include <inttypes.h>
 #include <p101_c/p101_stdio.h>
 #include <p101_c/p101_string.h>
+#include <p101_c/p101_time.h>
 #include <p101_posix/p101_unistd.h>
 #include <p101_posix/sys/p101_stat.h>
+#include <p101_posix/sys/p101_utsname.h>
 #include <stdio.h>
+#include <sys/utsname.h>
+#include <time.h>
 
 void p101_observe_make_report_paths(const struct p101_env *env, struct p101_error *err, const struct arguments *args, struct report_paths *paths)
 {
@@ -100,10 +105,15 @@ done:
 
 void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_error *err, const char *path, const struct arguments *args, const struct report_paths *paths)
 {
-    FILE *stream;
+    FILE          *stream;
+    struct utsname host;
+    time_t         generated_at;
+    int            have_host;
 
     P101_TRACE(env);
-    stream = p101_fopen(env, err, path, "w");
+    stream       = p101_fopen(env, err, path, "w");
+    generated_at = p101_time(env, err, NULL);
+    have_host    = p101_uname(env, err, &host);
 
     if(stream == NULL)
     {
@@ -111,6 +121,14 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     }
 
     p101_fputs(env, err, "p101-observe manifest\n", stream);
+    p101_fputs(env, err, "event_schema=p101-event-format-v1\n", stream);
+    p101_fprintf(env, err, stream, "generated_at_unix=%jd\n", (intmax_t)generated_at);
+    if(have_host == 0)
+    {
+        p101_fprintf(env, err, stream, "host_sysname=%s\n", host.sysname);
+        p101_fprintf(env, err, stream, "host_release=%s\n", host.release);
+        p101_fprintf(env, err, stream, "host_machine=%s\n", host.machine);
+    }
     p101_fprintf(env, err, stream, "report_dir=%s\n", paths->dir);
     p101_fprintf(env, err, stream, "resource_tracker=%s\n", args->resource_tracker);
     p101_fprintf(env, err, stream, "p101_trace=%s\n", args->p101_trace);
