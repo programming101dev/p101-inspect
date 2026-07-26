@@ -803,7 +803,7 @@ static bool parse_json_size(const struct p101_env *env, const char *text, const 
         goto done;
     }
 
-    *value = (size_t)parsed;
+    *value = parsed;
     ok     = true;
 
 done:
