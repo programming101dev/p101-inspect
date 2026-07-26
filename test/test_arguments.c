@@ -122,6 +122,22 @@ static void test_join_path_rejects_long_paths(void)
     TEST_ASSERT_TRUE(p101_error_is_error(error, P101_ERROR_USER, ERR_USAGE));
 }
 
+static void test_make_report_paths_includes_manifest_and_graph(void)
+{
+    struct arguments    args;
+    struct report_paths paths;
+
+    p101_memset(env, &args, 0, sizeof(args));
+    p101_memset(env, &paths, 0, sizeof(paths));
+    args.report_dir = "/tmp/p101-observe-test";
+
+    p101_observe_make_report_paths(env, error, &args, &paths);
+
+    TEST_ASSERT_FALSE(p101_error_has_error(error));
+    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/manifest.txt", paths.manifest);
+    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/resource-lifetimes.md", paths.correlated_mermaid);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -130,5 +146,6 @@ int main(void)
     RUN_TEST(test_parse_rejects_empty_reporter);
     RUN_TEST(test_parse_resource_summary_accepts_tracker_json);
     RUN_TEST(test_join_path_rejects_long_paths);
+    RUN_TEST(test_make_report_paths_includes_manifest_and_graph);
     return UNITY_END();
 }

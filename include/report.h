@@ -16,6 +16,7 @@ struct observe_result
     int                     trace_summary_status;
     int                     report_status;
     int                     report_json_status;
+    int                     report_mermaid_status;
     struct resource_summary resources;
 };
 

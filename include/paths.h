@@ -21,8 +21,10 @@ struct report_paths
     char trace_stderr[PATH_LEN];
     char correlated_report[PATH_LEN];
     char correlated_json[PATH_LEN];
+    char correlated_mermaid[PATH_LEN];
     char report_stderr[PATH_LEN];
     char summary[PATH_LEN];
+    char manifest[PATH_LEN];
 };
 
 void p101_observe_make_report_paths(const struct p101_env *env, struct p101_error *err, const struct arguments *args, struct report_paths *paths);
@@ -30,5 +32,6 @@ void p101_observe_join_path(const struct p101_env *env, struct p101_error *err, 
 void p101_observe_create_report_dir(const struct p101_env *env, struct p101_error *err, const char *path);
 void p101_observe_create_empty_file(const struct p101_env *env, struct p101_error *err, const char *path);
 void p101_observe_write_command_file(const struct p101_env *env, struct p101_error *err, const char *path, char *const *command_argv);
+void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_error *err, const char *path, const struct arguments *args, const struct report_paths *paths);
 
 #endif    // P101_OBSERVE_PATHS_H

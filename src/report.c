@@ -27,6 +27,7 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
     p101_observe_print_status(env, err, stream, "p101-trace-summary", result->trace_summary_status);
     p101_observe_print_status(env, err, stream, "p101-report", result->report_status);
     p101_observe_print_status(env, err, stream, "p101-report-json", result->report_json_status);
+    p101_observe_print_status(env, err, stream, "p101-report-mermaid", result->report_mermaid_status);
 
     if(result->resources.parsed)
     {
@@ -50,7 +51,9 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
     p101_fprintf(env, err, stream, "  trace_tools_stderr: %s\n", paths->trace_stderr);
     p101_fprintf(env, err, stream, "  correlated_report: %s\n", paths->correlated_report);
     p101_fprintf(env, err, stream, "  correlated_json: %s\n", paths->correlated_json);
+    p101_fprintf(env, err, stream, "  resource_lifetimes_graph: %s\n", paths->correlated_mermaid);
     p101_fprintf(env, err, stream, "  report_tools_stderr: %s\n", paths->report_stderr);
+    p101_fprintf(env, err, stream, "  manifest: %s\n", paths->manifest);
 
 done:
     if(stream != NULL)

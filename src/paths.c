@@ -34,8 +34,10 @@ void p101_observe_make_report_paths(const struct p101_env *env, struct p101_erro
     p101_observe_join_path(env, err, paths->trace_stderr, paths->dir, "trace-tools.stderr.txt");
     p101_observe_join_path(env, err, paths->correlated_report, paths->dir, "correlated-report.txt");
     p101_observe_join_path(env, err, paths->correlated_json, paths->dir, "correlated-report.json");
+    p101_observe_join_path(env, err, paths->correlated_mermaid, paths->dir, "resource-lifetimes.md");
     p101_observe_join_path(env, err, paths->report_stderr, paths->dir, "report-tools.stderr.txt");
     p101_observe_join_path(env, err, paths->summary, paths->dir, "summary.txt");
+    p101_observe_join_path(env, err, paths->manifest, paths->dir, "manifest.txt");
 }
 
 void p101_observe_join_path(const struct p101_env *env, struct p101_error *err, char destination[PATH_LEN], const char *dir, const char *name)
@@ -85,6 +87,41 @@ void p101_observe_write_command_file(const struct p101_env *env, struct p101_err
     for(size_t i = 0; command_argv[i] != NULL; i++)
     {
         p101_fprintf(env, err, stream, "%s%s", (i == 0U) ? "" : " ", command_argv[i]);
+    }
+
+    p101_fputc(env, err, '\n', stream);
+
+done:
+    if(stream != NULL)
+    {
+        p101_fclose(env, err, stream);
+    }
+}
+
+void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_error *err, const char *path, const struct arguments *args, const struct report_paths *paths)
+{
+    FILE *stream;
+
+    P101_TRACE(env);
+    stream = p101_fopen(env, err, path, "w");
+
+    if(stream == NULL)
+    {
+        goto done;
+    }
+
+    p101_fputs(env, err, "p101-observe manifest\n", stream);
+    p101_fprintf(env, err, stream, "report_dir=%s\n", paths->dir);
+    p101_fprintf(env, err, stream, "resource_tracker=%s\n", args->resource_tracker);
+    p101_fprintf(env, err, stream, "p101_trace=%s\n", args->p101_trace);
+    p101_fprintf(env, err, stream, "p101_report=%s\n", args->p101_report);
+    p101_fprintf(env, err, stream, "resource_log=%s\n", paths->resource_log);
+    p101_fprintf(env, err, stream, "call_log=%s\n", paths->call_log);
+    p101_fputs(env, err, "command=", stream);
+
+    for(size_t i = 0; args->command_argv[i] != NULL; i++)
+    {
+        p101_fprintf(env, err, stream, "%s%s", (i == 0U) ? "" : " ", args->command_argv[i]);
     }
 
     p101_fputc(env, err, '\n', stream);

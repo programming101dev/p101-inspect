@@ -33,7 +33,9 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     char                 *trace_summary_argv[4];
     char                 *report_argv[3];
     char                 *report_json_argv[4];
+    char                 *report_mermaid_argv[4];
     char                  json_option[]    = "-j";
+    char                  mermaid_option[] = "-m";
     char                  summary_option[] = "-s";
     char                  resource_tracker_path[PATH_LEN];
     char                  trace_path[PATH_LEN];
@@ -60,6 +62,7 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     }
 
     p101_observe_write_command_file(env, err, paths.command, args->command_argv);
+    p101_observe_write_manifest_file(env, err, paths.manifest, args, &paths);
 
     if(p101_error_has_error(err))
     {
@@ -158,6 +161,17 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
         goto done;
     }
 
+    report_mermaid_argv[0]       = report_path;
+    report_mermaid_argv[1]       = mermaid_option;
+    report_mermaid_argv[2]       = paths.dir;
+    report_mermaid_argv[3]       = NULL;
+    result.report_mermaid_status = run_tool_capture(env, err, report_mermaid_argv, paths.correlated_mermaid, paths.report_stderr);
+
+    if(p101_error_has_error(err))
+    {
+        goto done;
+    }
+
     p101_observe_write_summary_file(env, err, args, &paths, &result);
 
     if(p101_error_has_error(err))
@@ -168,7 +182,8 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     p101_printf(env, err, "p101-observe: wrote report to %s\n", paths.dir);
 
     if(!p101_observe_tool_status_is_acceptable(result.resource_status) || !p101_observe_tool_status_is_acceptable(result.resource_json_status) || !p101_observe_tool_status_is_acceptable(result.trace_tree_status) ||
-       !p101_observe_tool_status_is_acceptable(result.trace_summary_status) || !p101_observe_tool_status_is_acceptable(result.report_status) || !p101_observe_tool_status_is_acceptable(result.report_json_status))
+       !p101_observe_tool_status_is_acceptable(result.trace_summary_status) || !p101_observe_tool_status_is_acceptable(result.report_status) || !p101_observe_tool_status_is_acceptable(result.report_json_status) ||
+       !p101_observe_tool_status_is_acceptable(result.report_mermaid_status))
     {
         ret_val = EXIT_TROUBLE;
         goto done;
