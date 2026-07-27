@@ -1,4 +1,4 @@
-# p101 event format v1
+# p101 event format v1/v2
 
 The p101 runtime tools read plain-text, tab-separated records emitted by
 `lib_env`. The format is intentionally small enough for students to inspect by
@@ -15,10 +15,21 @@ only distinguishes OK, EOF, malformed text, and I/O error. It marks embedded NUL
 bytes and overlong physical lines as malformed so a damaged log cannot be
 silently replayed as a different record.
 
-The raw record version is currently `1`. Tools may add derived event numbers in
-their reports. A derived event number is the 1-based sequence of successfully
-parsed records in that input stream; it is stable for a specific log file and is
-used to correlate trace context, resource lifetimes, and findings.
+Version 1 is the stable default. Version 2 is opt-in with
+`P101_EVENT_LOG_VERSION=2` or `p101_env_set_event_log_version()` and inserts
+three metadata fields after pid:
+
+```text
+MAGIC<TAB>2<TAB>pid<TAB>seq<TAB>mono_ns<TAB>wall_unix_ns<TAB>...
+```
+
+Tools may add derived event numbers in their reports. A derived event number is
+the 1-based sequence of successfully parsed records in that input stream; it is
+stable for a specific log file and is used to correlate trace context, resource
+lifetimes, and findings. In v2 logs, `seq` is emitted by `lib_env` as a per-env
+monotonic event number, `mono_ns` is monotonic nanoseconds when available, and
+`wall_unix_ns` is Unix wall-clock nanoseconds when available. Unavailable
+timestamps are written as `-`.
 
 ## Resource records
 
@@ -74,6 +85,7 @@ They are intentionally separate from the resource and call logs.
 ## Current limitations
 
 Version 1 records do not contain wall-clock timestamps or monotonic timestamps.
-Tools therefore report ordering and resource age by derived event number rather
-than elapsed time. If/when timing is added, it should be a versioned extension
-that leaves v1 consumers able to reject or explicitly opt into the new shape.
+Tools therefore report ordering and resource age for v1 logs by derived event
+number rather than elapsed time. Version 2 records provide timing metadata, but
+the current reports still keep derived event IDs for stable, human-readable
+correlation across v1 and v2 inputs.

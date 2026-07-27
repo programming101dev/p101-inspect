@@ -331,7 +331,7 @@ static void set_fault_environment_from_parent_request(const struct p101_env *env
 
 static void setenv_if_present(const struct p101_env *env, struct p101_error *err, const char *source_name, const char *target_name)
 {
-    char *value;
+    const char *value;
 
     P101_TRACE(env);
     value = p101_getenv(env, source_name);

@@ -4,15 +4,15 @@ Version 1 is intentionally small and readable. It records sequence by line order
 but it does not record time. That choice keeps the format approachable, but it
 forces tools to derive ordering when several processes write to the same stream.
 
-Version 2 should add timing without making the format feel like a black box.
+Version 2 adds timing without making the format feel like a black box.
 
-Status: not implemented. The current implementation is v1 plus a shared
-byte-safe line reader in `lib_env`. That reader was extracted first so v1 tools
-handle damaged logs consistently while v2 remains a deliberate format change.
+Status: implemented as an opt-in format. Version 1 remains the default;
+`P101_EVENT_LOG_VERSION=2` or `p101_env_set_event_log_version()` enables v2
+emission, and the core consumers read both versions.
 
 ## Proposed additions
 
-Every v2 event should include:
+Every v2 event includes:
 
 - `seq`: a per-process monotonically increasing event number;
 - `mono_ns`: a monotonic timestamp in nanoseconds when available;
@@ -32,9 +32,9 @@ substitute wall-clock time for monotonic time.
 
 ## Compatibility rule
 
-Version 1 readers should continue rejecting unsupported versions. Version 2
-support should be explicit in each reader so old assignments and old expected
-outputs remain stable.
+Version 1 remains the default so old assignments and expected outputs stay
+stable. Readers that opt into v2 support accept versions 1 and 2 and still
+reject newer versions explicitly.
 
 ## Why it matters
 
