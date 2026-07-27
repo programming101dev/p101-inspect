@@ -6,6 +6,10 @@ forces tools to derive ordering when several processes write to the same stream.
 
 Version 2 should add timing without making the format feel like a black box.
 
+Status: not implemented. The current implementation is v1 plus a shared
+byte-safe line reader in `lib_env`. That reader was extracted first so v1 tools
+handle damaged logs consistently while v2 remains a deliberate format change.
+
 ## Proposed additions
 
 Every v2 event should include:

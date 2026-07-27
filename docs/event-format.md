@@ -5,9 +5,15 @@ The p101 runtime tools read plain-text, tab-separated records emitted by
 hand and strict enough for tools to replay safely.
 
 All records are one physical line. Fields that may contain tabs, newlines,
-carriage returns, or backslashes are escaped by `lib_env`. Consumers should
-ignore lines whose first field is not a p101 record prefix, count malformed p101
-records, and reject unsupported record versions.
+carriage returns, or backslashes are escaped by `lib_env`. Consumers should use
+`p101_env_read_event_line()` for byte-safe physical-line input, ignore lines
+whose first field is not a p101 record prefix, count malformed p101 records, and
+reject unsupported record versions.
+
+`p101_env_read_event_line()` deliberately does less than a schema parser: it
+only distinguishes OK, EOF, malformed text, and I/O error. It marks embedded NUL
+bytes and overlong physical lines as malformed so a damaged log cannot be
+silently replayed as a different record.
 
 The raw record version is currently `1`. Tools may add derived event numbers in
 their reports. A derived event number is the 1-based sequence of successfully
