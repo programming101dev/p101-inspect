@@ -137,7 +137,9 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     }
 
     p101_fputs(env, err, "p101-observe manifest\n", stream);
-    p101_fputs(env, err, "event_schema=p101-event-format-v1-v2\n", stream);
+    p101_fputs(env, err, "event_schema=p101-event-format-v2\n", stream);
+    p101_fputs(env, err, "event_log_version=2\n", stream);
+    p101_fputs(env, err, "event_timestamp_fields=sequence,monotonic_ns,wall_unix_ns\n", stream);
     if(have_time)
     {
         p101_fprintf(env, err, stream, "generated_at_unix=%jd\n", (intmax_t)generated_at);

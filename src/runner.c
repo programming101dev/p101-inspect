@@ -315,6 +315,7 @@ static void set_observed_environment(const struct p101_env *env, struct p101_err
     P101_TRACE(env);
     p101_setenv(env, err, RESOURCE_LOG_ENV, paths->resource_log, 1);
     p101_setenv(env, err, CALL_LOG_ENV, paths->call_log, 1);
+    p101_setenv(env, err, EVENT_LOG_VERSION_ENV, EVENT_LOG_VERSION_VALUE, 1);
     p101_setenv(env, err, CALL_LOG_ARGS_ENV, "1", 1);
     p101_setenv(env, err, CALL_LOG_RESULT_ENV, "1", 1);
     set_fault_environment_from_parent_request(env, err);
@@ -347,6 +348,7 @@ static void clear_observe_environment(const struct p101_env *env, struct p101_er
     P101_TRACE(env);
     p101_unsetenv(env, err, RESOURCE_LOG_ENV);
     p101_unsetenv(env, err, CALL_LOG_ENV);
+    p101_unsetenv(env, err, EVENT_LOG_VERSION_ENV);
     p101_unsetenv(env, err, CALL_LOG_ARGS_ENV);
     p101_unsetenv(env, err, CALL_LOG_RESULT_ENV);
 }
