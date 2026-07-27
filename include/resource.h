@@ -12,6 +12,10 @@ struct resource_summary
     size_t fd_leaks;
     size_t allocation_leaks;
     size_t bad_releases;
+    size_t exec_inheritances;
+    size_t malformed;
+    size_t bad_version;
+    size_t refused;
     bool   parsed;
 };
 

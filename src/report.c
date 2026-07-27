@@ -31,7 +31,18 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
 
     if(result->resources.parsed)
     {
-        p101_fprintf(env, err, stream, "\nresources: records=%zu fd_leaks=%zu allocation_leaks=%zu bad_releases=%zu\n", result->resources.records, result->resources.fd_leaks, result->resources.allocation_leaks, result->resources.bad_releases);
+        p101_fprintf(env,
+                     err,
+                     stream,
+                     "\nresources: records=%zu fd_leaks=%zu allocation_leaks=%zu bad_releases=%zu exec_inheritances=%zu malformed=%zu bad_version=%zu refused=%zu\n",
+                     result->resources.records,
+                     result->resources.fd_leaks,
+                     result->resources.allocation_leaks,
+                     result->resources.bad_releases,
+                     result->resources.exec_inheritances,
+                     result->resources.malformed,
+                     result->resources.bad_version,
+                     result->resources.refused);
     }
     else
     {

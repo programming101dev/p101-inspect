@@ -21,6 +21,10 @@
 #define JSON_FD_LEAKS "\"fd_leaks\""
 #define JSON_ALLOCATION_LEAKS "\"allocation_leaks\""
 #define JSON_BAD_RELEASES "\"bad_releases\""
+#define JSON_EXEC_INHERITANCES "\"exec_inheritances\""
+#define JSON_MALFORMED "\"malformed\""
+#define JSON_BAD_VERSION "\"bad_version\""
+#define JSON_REFUSED "\"refused\""
 
 enum
 {

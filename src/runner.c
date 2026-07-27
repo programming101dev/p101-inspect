@@ -189,6 +189,12 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
         goto done;
     }
 
+    if(!result.resources.parsed)
+    {
+        ret_val = EXIT_TROUBLE;
+        goto done;
+    }
+
     if(!p101_observe_status_is_success(result.command_status) || p101_observe_resource_finding_count(&result.resources) > 0U)
     {
         ret_val = EXIT_FINDINGS;
