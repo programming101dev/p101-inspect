@@ -109,6 +109,7 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     FILE          *stream;
     struct utsname host;
     time_t         generated_at;
+    intmax_t       generated_at_value;
     bool           have_time;
     int            have_host;
 
@@ -120,13 +121,13 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
         goto done;
     }
 
-    generated_at = p101_time(env, err, NULL);
-    have_time    = p101_error_has_no_error(err);
+    generated_at       = p101_time(env, err, NULL);
+    have_time          = p101_error_has_no_error(err);
+    generated_at_value = generated_at;
 
     if(!have_time)
     {
         p101_error_reset(err);
-        generated_at = (time_t)0;
     }
 
     have_host = p101_uname(env, err, &host);
@@ -142,7 +143,7 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     p101_fputs(env, err, "event_timestamp_fields=sequence,monotonic_ns,wall_unix_ns\n", stream);
     if(have_time)
     {
-        p101_fprintf(env, err, stream, "generated_at_unix=%jd\n", (intmax_t)generated_at);
+        p101_fprintf(env, err, stream, "generated_at_unix=%jd\n", generated_at_value);
     }
     if(have_host == 0)
     {
