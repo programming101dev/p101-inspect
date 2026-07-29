@@ -52,16 +52,34 @@ Fork events:
 P101FORK<TAB>2<TAB>parent-pid<TAB>seq<TAB>mono_ns<TAB>wall_unix_ns<TAB>child-pid<TAB>line<TAB>function<TAB>file
 ```
 
+Spawn events:
+
+```text
+P101SPAWN<TAB>2<TAB>parent-pid<TAB>seq<TAB>mono_ns<TAB>wall_unix_ns<TAB>child-pid<TAB>line<TAB>function<TAB>file<TAB>target
+```
+
+POSIX spawn file actions are opaque. Consumers retain this boundary but must
+not infer a fork-equivalent child descriptor table from it.
+
 Exec-boundary descriptor snapshots:
 
 ```text
 P101EXEC<TAB>2<TAB>pid<TAB>seq<TAB>mono_ns<TAB>wall_unix_ns<TAB>fd<TAB>cloexec<TAB>line<TAB>function<TAB>file<TAB>target
 ```
 
+Failed exec attempts:
+
+```text
+P101EXECFAIL<TAB>2<TAB>pid<TAB>seq<TAB>mono_ns<TAB>wall_unix_ns<TAB>line<TAB>function<TAB>file<TAB>target
+```
+
 `new_ptr` is `-` when there is no second pointer. Pointer strings are opaque
 because `%p` is platform formatted. `cloexec` is `0` when `FD_CLOEXEC` is off
 and `1` when it is on. `target` is the path/file argument passed to the exec
 wrapper.
+An exec wrapper writes its descriptor snapshots before calling the native
+function. If that call returns, `P101EXECFAIL` tells consumers to roll back the
+inheritance findings for that attempt; no new program image was entered.
 
 ## Call records
 
