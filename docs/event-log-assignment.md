@@ -9,7 +9,8 @@ For this assignment, students build a tiny analyzer over `resources.log`.
 ## Input
 
 Use a `resources.log` produced by `p101-observe`. The format is documented in
-[`event-format.md`](event-format.md).
+the
+[`lib_tool_event` protocol specification](https://github.com/programming101dev/lib_tool_event/blob/main/docs/event-format.md).
 
 The analyzer must ignore lines that do not begin with a p101 record prefix.
 

@@ -21,5 +21,6 @@ struct observe_result
 };
 
 void p101_observe_write_summary_file(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result);
+void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_error *err, const struct report_paths *paths, const struct observe_result *result);
 
 #endif    // P101_OBSERVE_REPORT_H

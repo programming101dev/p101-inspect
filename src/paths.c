@@ -5,6 +5,7 @@
 #include <p101_c/p101_stdio.h>
 #include <p101_c/p101_string.h>
 #include <p101_c/p101_time.h>
+#include <p101_posix/p101_time.h>
 #include <p101_posix/p101_unistd.h>
 #include <p101_posix/sys/p101_stat.h>
 #include <p101_posix/sys/p101_utsname.h>
@@ -15,11 +16,23 @@
 
 void p101_observe_make_report_paths(const struct p101_env *env, struct p101_error *err, const struct arguments *args, struct report_paths *paths)
 {
+    struct timespec now;
+    intmax_t        seconds;
+    long            pid;
+
     P101_TRACE(env);
+    pid = p101_getpid(env);
+    p101_clock_gettime(env, err, CLOCK_REALTIME, &now);
+    if(p101_error_has_error(err))
+    {
+        goto done;
+    }
+    seconds = now.tv_sec;
+    p101_snprintf(env, err, paths->run_id, sizeof(paths->run_id), "p101-%ld-%jd-%09ld", pid, seconds, now.tv_nsec);
 
     if(args->report_dir == NULL)
     {
-        p101_snprintf(env, err, paths->dir, sizeof(paths->dir), "%s-%ld", DEFAULT_REPORT_PREFIX, (long)p101_getpid(env));
+        p101_snprintf(env, err, paths->dir, sizeof(paths->dir), "%s-%ld", DEFAULT_REPORT_PREFIX, pid);
     }
     else
     {
@@ -44,6 +57,10 @@ void p101_observe_make_report_paths(const struct p101_env *env, struct p101_erro
     p101_observe_join_path(env, err, paths->report_stderr, paths->dir, "report-tools.stderr.txt");
     p101_observe_join_path(env, err, paths->summary, paths->dir, "summary.txt");
     p101_observe_join_path(env, err, paths->manifest, paths->dir, "manifest.txt");
+    p101_observe_join_path(env, err, paths->receipt, paths->dir, "receipt.txt");
+
+done:
+    return;
 }
 
 void p101_observe_join_path(const struct p101_env *env, struct p101_error *err, char destination[PATH_LEN], const char *dir, const char *name)
@@ -138,8 +155,10 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     }
 
     p101_fputs(env, err, "p101-observe manifest\n", stream);
-    p101_fputs(env, err, "event_schema=p101-event-format-v2\n", stream);
-    p101_fputs(env, err, "event_log_version=2\n", stream);
+    p101_fputs(env, err, "schema=p101-observe-manifest-v2\n", stream);
+    p101_fprintf(env, err, stream, "run_id=%s\n", paths->run_id);
+    p101_fputs(env, err, "event_schema=p101-tool-event-format-v3\n", stream);
+    p101_fputs(env, err, "event_log_version=3\n", stream);
     p101_fputs(env, err, "event_timestamp_fields=sequence,monotonic_ns,wall_unix_ns\n", stream);
     if(have_time)
     {

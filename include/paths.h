@@ -2,11 +2,13 @@
 #define P101_OBSERVE_PATHS_H
 
 #include "arguments.h"
+#include "constants.h"
 #include <p101_env/env.h>
 #include <p101_error/error.h>
 
 struct report_paths
 {
+    char run_id[RUN_ID_LEN];
     char dir[PATH_LEN];
     char command[PATH_LEN];
     char stdout_text[PATH_LEN];
@@ -25,6 +27,7 @@ struct report_paths
     char report_stderr[PATH_LEN];
     char summary[PATH_LEN];
     char manifest[PATH_LEN];
+    char receipt[PATH_LEN];
 };
 
 void p101_observe_make_report_paths(const struct p101_env *env, struct p101_error *err, const struct arguments *args, struct report_paths *paths);

@@ -95,7 +95,7 @@ static void test_parse_rejects_empty_reporter(void)
 
 static void test_parse_resource_summary_accepts_tracker_json(void)
 {
-    const char              json[] = "{\"summary\":{\"records\":7,\"fd_leaks\":1,\"allocation_leaks\":2,\"bad_releases\":3}}";
+    const char              json[] = "{\"summary\":{\"records\":7,\"fd_leaks\":1,\"allocation_leaks\":2,\"bad_releases\":3,\"generic_resource_leaks\":4,\"generic_bad_releases\":5}}";
     struct resource_summary summary;
 
     p101_memset(env, &summary, 0, sizeof(summary));
@@ -106,6 +106,9 @@ static void test_parse_resource_summary_accepts_tracker_json(void)
     TEST_ASSERT_EQUAL_UINT(1U, summary.fd_leaks);
     TEST_ASSERT_EQUAL_UINT(2U, summary.allocation_leaks);
     TEST_ASSERT_EQUAL_UINT(3U, summary.bad_releases);
+    TEST_ASSERT_EQUAL_UINT(4U, summary.generic_resource_leaks);
+    TEST_ASSERT_EQUAL_UINT(5U, summary.generic_bad_releases);
+    TEST_ASSERT_EQUAL_UINT(15U, p101_observe_resource_finding_count(&summary));
 }
 
 static void test_join_path_rejects_long_paths(void)
@@ -134,7 +137,9 @@ static void test_make_report_paths_includes_manifest_and_graph(void)
     p101_observe_make_report_paths(env, error, &args, &paths);
 
     TEST_ASSERT_FALSE(p101_error_has_error(error));
+    TEST_ASSERT_EQUAL_STRING_LEN("p101-", paths.run_id, 5U);
     TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/manifest.txt", paths.manifest);
+    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/receipt.txt", paths.receipt);
     TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/resource-lifetimes.md", paths.correlated_mermaid);
 }
 

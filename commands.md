@@ -14,7 +14,8 @@ Run `./change-compiler.sh -c <compiler>` once before building.
 | `p101-observe -p ../p101-report/build-clang/p101-report -- ./prog` | Use an in-tree p101-report build |
 | `p101-observe -v -- ./prog` | Verbose: trace `p101-observe` itself |
 
-Each report directory includes `manifest.txt` for reproducibility and
+Each report directory includes `manifest.txt` for reproducibility,
+`receipt.txt` for bounded run identity, status, and artifact fingerprints, and
 `resource-lifetimes.md` for the Mermaid lifetime graph.
 
 Exit status: `0` clean command and clean resources, `1` command failure or

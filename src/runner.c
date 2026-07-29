@@ -179,6 +179,13 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
         goto done;
     }
 
+    p101_observe_write_receipt_file(env, err, &paths, &result);
+
+    if(p101_error_has_error(err))
+    {
+        goto done;
+    }
+
     p101_printf(env, err, "p101-observe: wrote report to %s\n", paths.dir);
 
     if(!p101_observe_tool_status_is_acceptable(result.resource_status) || !p101_observe_tool_status_is_acceptable(result.resource_json_status) || !p101_observe_tool_status_is_acceptable(result.trace_tree_status) ||
@@ -328,6 +335,9 @@ static void set_fault_environment_from_parent_request(const struct p101_env *env
     setenv_if_present(env, err, CHILD_FAULT_ERRNO_ENV, FAULT_ERRNO_ENV);
     setenv_if_present(env, err, CHILD_FAULT_LOG_ENV, FAULT_LOG_ENV);
     setenv_if_present(env, err, CHILD_FAULT_NAME_ENV, FAULT_NAME_ENV);
+    setenv_if_present(env, err, CHILD_FAULT_MODE_ENV, FAULT_MODE_ENV);
+    setenv_if_present(env, err, CHILD_FAULT_AMOUNT_ENV, FAULT_AMOUNT_ENV);
+    setenv_if_present(env, err, CHILD_FAULT_REPEAT_ENV, FAULT_REPEAT_ENV);
 }
 
 static void setenv_if_present(const struct p101_env *env, struct p101_error *err, const char *source_name, const char *target_name)
@@ -361,8 +371,14 @@ static void clear_helper_environment(const struct p101_env *env, struct p101_err
     p101_unsetenv(env, err, FAULT_ERRNO_ENV);
     p101_unsetenv(env, err, FAULT_LOG_ENV);
     p101_unsetenv(env, err, FAULT_NAME_ENV);
+    p101_unsetenv(env, err, FAULT_MODE_ENV);
+    p101_unsetenv(env, err, FAULT_AMOUNT_ENV);
+    p101_unsetenv(env, err, FAULT_REPEAT_ENV);
     p101_unsetenv(env, err, CHILD_FAULT_CALL_ENV);
     p101_unsetenv(env, err, CHILD_FAULT_ERRNO_ENV);
     p101_unsetenv(env, err, CHILD_FAULT_LOG_ENV);
     p101_unsetenv(env, err, CHILD_FAULT_NAME_ENV);
+    p101_unsetenv(env, err, CHILD_FAULT_MODE_ENV);
+    p101_unsetenv(env, err, CHILD_FAULT_AMOUNT_ENV);
+    p101_unsetenv(env, err, CHILD_FAULT_REPEAT_ENV);
 }
