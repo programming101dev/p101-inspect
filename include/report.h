@@ -12,6 +12,8 @@ struct observe_result
     int                     command_status;
     int                     resource_status;
     int                     resource_json_status;
+    int                     concurrency_status;
+    int                     concurrency_json_status;
     int                     trace_tree_status;
     int                     trace_summary_status;
     int                     report_status;

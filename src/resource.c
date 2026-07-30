@@ -12,7 +12,7 @@ void p101_observe_read_resource_json(const struct p101_env *env, struct p101_err
     char   buffer[JSON_BUF_LEN];
     size_t used;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     p101_memset(env, summary, 0, sizeof(*summary));
     stream = p101_fopen(env, err, path, "r");
     used   = 0;

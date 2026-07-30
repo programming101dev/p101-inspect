@@ -2,7 +2,8 @@
 
 `p101-observe` is the front door for the Programming 101 runtime tools. It runs
 one command with p101 resource and call logging enabled, captures the command's
-output, runs `p101-resource-tracker`, `p101-trace`, and `p101-report`, and
+output, runs `p101-resource-tracker`, `p101-sync-check`, `p101-trace`, and
+`p101-report`, and
 leaves a small report directory behind.
 
 It does not replace the lower-level tools. It bundles their ordinary workflow so
@@ -11,12 +12,12 @@ commands.
 
 ## Usage
 
-    p101-observe [-h] [-v] [-o <report-dir>] [-r <p101-resource-tracker>] [-t <p101-trace>] [-p <p101-report>] -- <command> [args...]
+    p101-observe [-h] [-v] [-A] [-R] [-o <report-dir>] [-r <p101-resource-tracker>] [-d <p101-sync-check>] [-t <p101-trace>] [-p <p101-report>] -- <command> [args...]
 
 Examples:
 
     p101-observe -- ./my-program config.txt
-    p101-observe -o run-report -r ../p101-resource-tracker/build-clang/p101-resource-tracker -t ../p101-trace/build-clang/p101-trace -p ../p101-report/build-clang/p101-report -- ./my-program
+    p101-observe -o run-report -r ../p101-resource-tracker/build-clang/p101-resource-tracker -d ../p101-sync-check/build-clang/p101-sync-check -t ../p101-trace/build-clang/p101-trace -p ../p101-report/build-clang/p101-report -- ./my-program
 
 With no `-o`, the report directory is `p101-observe-<pid>` in the current
 directory. The directory must not already exist.
@@ -33,6 +34,9 @@ directory. The directory must not already exist.
     resource-report.txt
     resource-report.json
     resource-tools.stderr.txt
+    concurrency-report.txt
+    concurrency-report.json
+    concurrency-tools.stderr.txt
     trace-tree.txt
     trace-summary.txt
     trace-tools.stderr.txt
@@ -48,8 +52,12 @@ The observed command receives these environment settings:
 
     P101_RESOURCE_LOG=<report-dir>/resources.log
     P101_CALL_LOG=<report-dir>/calls.log
-    P101_CALL_LOG_ARGS=1
-    P101_CALL_LOG_RESULT=1
+Call arguments and results are redacted by default. `-A` opts in to argument
+values and `-R` opts in to return values; either may contain credentials,
+paths, personal data, or other secrets. The manifest records which value
+classes were enabled. Programs needing field-specific redaction can install a
+custom `p101_env_call_observer`; the built-in text logger intentionally does
+not guess which bytes are sensitive.
 
 Those are set in the child process immediately before `exec`, after
 `p101-observe` has redirected stdout and stderr, so the report is about the
@@ -67,16 +75,14 @@ or synchronously flushed per event.
 Descriptor, allocation, and generic `P101RESOURCE` lifecycle findings all
 contribute to the summary and exit status.
 The event log also has a
-teaching exercise in [`docs/event-log-assignment.md`](docs/event-log-assignment.md),
-and the design history for timestamps is preserved in
-[`docs/event-format-v2-notes.md`](docs/event-format-v2-notes.md).
+teaching exercise in [`docs/event-log-assignment.md`](docs/event-log-assignment.md).
 
 ## Exit status
 
 | Status | Meaning |
 | --- | --- |
-| `0` | The command exited `0`, the reports were produced, and no resource findings were parsed |
-| `1` | The command failed, `p101-resource-tracker` reported resource findings, or `p101-report` reported correlated findings |
+| `0` | The command and every analyzer exited cleanly and complete reports were produced |
+| `1` | The command failed or any analyzer reported a resource, concurrency, trace-integrity, or correlated finding |
 | `2` | `p101-observe` could not create/run the report workflow |
 
 ## Boundaries

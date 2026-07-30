@@ -18,6 +18,9 @@ struct report_paths
     char resource_report[PATH_LEN];
     char resource_json[PATH_LEN];
     char resource_stderr[PATH_LEN];
+    char concurrency_report[PATH_LEN];
+    char concurrency_json[PATH_LEN];
+    char concurrency_stderr[PATH_LEN];
     char trace_tree[PATH_LEN];
     char trace_summary[PATH_LEN];
     char trace_stderr[PATH_LEN];

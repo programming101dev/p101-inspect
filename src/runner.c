@@ -17,7 +17,7 @@
 static int  run_observed_command(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths);
 static int  run_tool_capture(const struct p101_env *env, struct p101_error *err, char *const tool_argv[], const char *stdout_path, const char *stderr_path);
 static void redirect_child_output(const struct p101_env *env, struct p101_error *err, const char *stdout_path, const char *stderr_path);
-static void set_observed_environment(const struct p101_env *env, struct p101_error *err, const struct report_paths *paths);
+static void set_observed_environment(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths);
 static void set_fault_environment_from_parent_request(const struct p101_env *env, struct p101_error *err);
 static void setenv_if_present(const struct p101_env *env, struct p101_error *err, const char *source_name, const char *target_name);
 static void clear_observe_environment(const struct p101_env *env, struct p101_error *err);
@@ -29,6 +29,8 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     struct observe_result result;
     char                 *resource_argv[3];
     char                 *resource_json_argv[4];
+    char                 *concurrency_argv[3];
+    char                 *concurrency_json_argv[4];
     char                 *trace_tree_argv[3];
     char                 *trace_summary_argv[4];
     char                 *report_argv[3];
@@ -38,11 +40,12 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     char                  mermaid_option[] = "-m";
     char                  summary_option[] = "-s";
     char                  resource_tracker_path[PATH_LEN];
+    char                  concurrency_path[PATH_LEN];
     char                  trace_path[PATH_LEN];
     char                  report_path[PATH_LEN];
     int                   ret_val;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     p101_memset(env, &paths, 0, sizeof(paths));
     p101_memset(env, &result, 0, sizeof(result));
     ret_val = EXIT_TROUBLE;
@@ -79,12 +82,35 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
 
     p101_strncpy(env, resource_tracker_path, args->resource_tracker, sizeof(resource_tracker_path) - 1U);
     resource_tracker_path[sizeof(resource_tracker_path) - 1U] = '\0';
+    p101_strncpy(env, concurrency_path, args->p101_sync_check, sizeof(concurrency_path) - 1U);
+    concurrency_path[sizeof(concurrency_path) - 1U] = '\0';
     p101_strncpy(env, trace_path, args->p101_trace, sizeof(trace_path) - 1U);
     trace_path[sizeof(trace_path) - 1U] = '\0';
     p101_strncpy(env, report_path, args->p101_report, sizeof(report_path) - 1U);
     report_path[sizeof(report_path) - 1U] = '\0';
 
     result.command_status = run_observed_command(env, err, args, &paths);
+
+    if(p101_error_has_error(err))
+    {
+        goto done;
+    }
+
+    concurrency_argv[0]       = concurrency_path;
+    concurrency_argv[1]       = paths.resource_log;
+    concurrency_argv[2]       = NULL;
+    result.concurrency_status = run_tool_capture(env, err, concurrency_argv, paths.concurrency_report, paths.concurrency_stderr);
+
+    if(p101_error_has_error(err))
+    {
+        goto done;
+    }
+
+    concurrency_json_argv[0]       = concurrency_path;
+    concurrency_json_argv[1]       = json_option;
+    concurrency_json_argv[2]       = paths.resource_log;
+    concurrency_json_argv[3]       = NULL;
+    result.concurrency_json_status = run_tool_capture(env, err, concurrency_json_argv, paths.concurrency_json, paths.concurrency_stderr);
 
     if(p101_error_has_error(err))
     {
@@ -188,21 +214,23 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
 
     p101_printf(env, err, "p101-observe: wrote report to %s\n", paths.dir);
 
-    if(!p101_observe_tool_status_is_acceptable(result.resource_status) || !p101_observe_tool_status_is_acceptable(result.resource_json_status) || !p101_observe_tool_status_is_acceptable(result.trace_tree_status) ||
-       !p101_observe_tool_status_is_acceptable(result.trace_summary_status) || !p101_observe_tool_status_is_acceptable(result.report_status) || !p101_observe_tool_status_is_acceptable(result.report_json_status) ||
-       !p101_observe_tool_status_is_acceptable(result.report_mermaid_status))
+    if(!p101_observe_tool_status_is_acceptable(result.resource_status) || !p101_observe_tool_status_is_acceptable(result.resource_json_status) || !p101_observe_tool_status_is_acceptable(result.concurrency_status) ||
+       !p101_observe_tool_status_is_acceptable(result.concurrency_json_status) || !p101_observe_tool_status_is_acceptable(result.trace_tree_status) || !p101_observe_tool_status_is_acceptable(result.trace_summary_status) ||
+       !p101_observe_tool_status_is_acceptable(result.report_status) || !p101_observe_tool_status_is_acceptable(result.report_json_status) || !p101_observe_tool_status_is_acceptable(result.report_mermaid_status))
     {
         ret_val = EXIT_TROUBLE;
         goto done;
     }
 
-    if(!result.resources.parsed)
+    if(!result.resources.parsed || !result.resources.log_complete)
     {
         ret_val = EXIT_TROUBLE;
         goto done;
     }
 
-    if(!p101_observe_status_is_success(result.command_status) || p101_observe_resource_finding_count(&result.resources) > 0U)
+    if(!p101_observe_status_is_success(result.command_status) || p101_observe_resource_finding_count(&result.resources) > 0U || !p101_observe_status_is_success(result.resource_status) || !p101_observe_status_is_success(result.resource_json_status) ||
+       !p101_observe_status_is_success(result.concurrency_status) || !p101_observe_status_is_success(result.concurrency_json_status) || !p101_observe_status_is_success(result.trace_tree_status) || !p101_observe_status_is_success(result.trace_summary_status) ||
+       !p101_observe_status_is_success(result.report_status) || !p101_observe_status_is_success(result.report_json_status) || !p101_observe_status_is_success(result.report_mermaid_status))
     {
         ret_val = EXIT_FINDINGS;
         goto done;
@@ -219,7 +247,7 @@ static int run_observed_command(const struct p101_env *env, struct p101_error *e
     int   status;
     pid_t pid;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     status = 0;
     pid    = p101_fork(env, err);
 
@@ -232,7 +260,7 @@ static int run_observed_command(const struct p101_env *env, struct p101_error *e
     {
         clear_observe_environment(env, err);
         redirect_child_output(env, err, paths->stdout_text, paths->stderr_text);
-        set_observed_environment(env, err, paths);
+        set_observed_environment(env, err, args, paths);
 
         if(p101_error_has_error(err))
         {
@@ -256,7 +284,7 @@ static int run_tool_capture(const struct p101_env *env, struct p101_error *err, 
     int   status;
     pid_t pid;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     status = 0;
     pid    = p101_fork(env, err);
 
@@ -292,7 +320,7 @@ static void redirect_child_output(const struct p101_env *env, struct p101_error 
     int stdout_fd;
     int stderr_fd;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     stdout_fd = p101_open(env, err, stdout_path, O_WRONLY | O_CREAT | O_TRUNC, REPORT_FILE_MODE);
 
     if(p101_error_has_error(err))
@@ -317,20 +345,25 @@ done:
     return;
 }
 
-static void set_observed_environment(const struct p101_env *env, struct p101_error *err, const struct report_paths *paths)
+static void set_observed_environment(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths)
 {
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     p101_setenv(env, err, RESOURCE_LOG_ENV, paths->resource_log, 1);
     p101_setenv(env, err, CALL_LOG_ENV, paths->call_log, 1);
-    p101_setenv(env, err, EVENT_LOG_VERSION_ENV, EVENT_LOG_VERSION_VALUE, 1);
-    p101_setenv(env, err, CALL_LOG_ARGS_ENV, "1", 1);
-    p101_setenv(env, err, CALL_LOG_RESULT_ENV, "1", 1);
+    if(args->log_arguments)
+    {
+        p101_setenv(env, err, CALL_LOG_ARGS_ENV, "1", 1);
+    }
+    if(args->log_results)
+    {
+        p101_setenv(env, err, CALL_LOG_RESULT_ENV, "1", 1);
+    }
     set_fault_environment_from_parent_request(env, err);
 }
 
 static void set_fault_environment_from_parent_request(const struct p101_env *env, struct p101_error *err)
 {
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     setenv_if_present(env, err, CHILD_FAULT_CALL_ENV, FAULT_CALL_ENV);
     setenv_if_present(env, err, CHILD_FAULT_ERRNO_ENV, FAULT_ERRNO_ENV);
     setenv_if_present(env, err, CHILD_FAULT_LOG_ENV, FAULT_LOG_ENV);
@@ -344,7 +377,7 @@ static void setenv_if_present(const struct p101_env *env, struct p101_error *err
 {
     const char *value;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     value = p101_getenv(env, source_name);
 
     if(value != NULL && value[0] != '\0')
@@ -355,17 +388,16 @@ static void setenv_if_present(const struct p101_env *env, struct p101_error *err
 
 static void clear_observe_environment(const struct p101_env *env, struct p101_error *err)
 {
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     p101_unsetenv(env, err, RESOURCE_LOG_ENV);
     p101_unsetenv(env, err, CALL_LOG_ENV);
-    p101_unsetenv(env, err, EVENT_LOG_VERSION_ENV);
     p101_unsetenv(env, err, CALL_LOG_ARGS_ENV);
     p101_unsetenv(env, err, CALL_LOG_RESULT_ENV);
 }
 
 static void clear_helper_environment(const struct p101_env *env, struct p101_error *err)
 {
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     clear_observe_environment(env, err);
     p101_unsetenv(env, err, FAULT_CALL_ENV);
     p101_unsetenv(env, err, FAULT_ERRNO_ENV);

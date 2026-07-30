@@ -14,7 +14,7 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
 {
     FILE *stream;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     stream = p101_fopen(env, err, paths->summary, "w");
 
     if(stream == NULL)
@@ -29,6 +29,8 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
     p101_observe_print_status(env, err, stream, "command", result->command_status);
     p101_observe_print_status(env, err, stream, "p101-resource-tracker", result->resource_status);
     p101_observe_print_status(env, err, stream, "p101-resource-tracker-json", result->resource_json_status);
+    p101_observe_print_status(env, err, stream, "p101-sync-check", result->concurrency_status);
+    p101_observe_print_status(env, err, stream, "p101-sync-check-json", result->concurrency_json_status);
     p101_observe_print_status(env, err, stream, "p101-trace-tree", result->trace_tree_status);
     p101_observe_print_status(env, err, stream, "p101-trace-summary", result->trace_summary_status);
     p101_observe_print_status(env, err, stream, "p101-report", result->report_status);
@@ -65,6 +67,9 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
     p101_fprintf(env, err, stream, "  resource_report: %s\n", paths->resource_report);
     p101_fprintf(env, err, stream, "  resource_json: %s\n", paths->resource_json);
     p101_fprintf(env, err, stream, "  resource_tools_stderr: %s\n", paths->resource_stderr);
+    p101_fprintf(env, err, stream, "  concurrency_report: %s\n", paths->concurrency_report);
+    p101_fprintf(env, err, stream, "  concurrency_json: %s\n", paths->concurrency_json);
+    p101_fprintf(env, err, stream, "  concurrency_tools_stderr: %s\n", paths->concurrency_stderr);
     p101_fprintf(env, err, stream, "  trace_tree: %s\n", paths->trace_tree);
     p101_fprintf(env, err, stream, "  trace_summary: %s\n", paths->trace_summary);
     p101_fprintf(env, err, stream, "  trace_tools_stderr: %s\n", paths->trace_stderr);
@@ -86,7 +91,7 @@ void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_err
 {
     FILE *stream;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     stream = p101_fopen(env, err, paths->receipt, "w");
     if(stream == NULL)
     {
@@ -96,8 +101,8 @@ void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_err
     p101_fputs(env, err, "p101-observe receipt\n", stream);
     p101_fputs(env, err, "schema=p101-run-receipt-v1\n", stream);
     p101_fprintf(env, err, stream, "run_id=%s\n", paths->run_id);
-    p101_fputs(env, err, "event_schema=p101-tool-event-format-v3\n", stream);
-    p101_fputs(env, err, "event_log_version=3\n", stream);
+    p101_fputs(env, err, "event_schema=" P101_TOOL_EVENT_SCHEMA_NAME "\n", stream);
+    p101_fprintf(env, err, stream, "event_log_version=%d\n", P101_TOOL_EVENT_LOG_VERSION);
     p101_fputs(env, err, "ordering=per-context-sequence\n", stream);
     p101_fputs(env, err, "durability=buffered-until-close\n", stream);
     p101_fputs(env, err, "fingerprint=fnv1a64\n", stream);
@@ -106,6 +111,8 @@ void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_err
     write_status(env, err, stream, "command", result->command_status);
     write_status(env, err, stream, "resource_tracker", result->resource_status);
     write_status(env, err, stream, "resource_tracker_json", result->resource_json_status);
+    write_status(env, err, stream, "concurrency", result->concurrency_status);
+    write_status(env, err, stream, "concurrency_json", result->concurrency_json_status);
     write_status(env, err, stream, "trace_tree", result->trace_tree_status);
     write_status(env, err, stream, "trace_summary", result->trace_summary_status);
     write_status(env, err, stream, "report", result->report_status);
@@ -121,6 +128,9 @@ void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_err
     write_artifact_fingerprint(env, err, stream, "resource_report", paths->resource_report);
     write_artifact_fingerprint(env, err, stream, "resource_json", paths->resource_json);
     write_artifact_fingerprint(env, err, stream, "resource_tools_stderr", paths->resource_stderr);
+    write_artifact_fingerprint(env, err, stream, "concurrency_report", paths->concurrency_report);
+    write_artifact_fingerprint(env, err, stream, "concurrency_json", paths->concurrency_json);
+    write_artifact_fingerprint(env, err, stream, "concurrency_tools_stderr", paths->concurrency_stderr);
     write_artifact_fingerprint(env, err, stream, "trace_tree", paths->trace_tree);
     write_artifact_fingerprint(env, err, stream, "trace_summary", paths->trace_summary);
     write_artifact_fingerprint(env, err, stream, "trace_tools_stderr", paths->trace_stderr);

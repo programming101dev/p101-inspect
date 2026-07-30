@@ -20,7 +20,7 @@ void p101_observe_make_report_paths(const struct p101_env *env, struct p101_erro
     intmax_t        seconds;
     long            pid;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     pid = p101_getpid(env);
     p101_clock_gettime(env, err, CLOCK_REALTIME, &now);
     if(p101_error_has_error(err))
@@ -48,6 +48,9 @@ void p101_observe_make_report_paths(const struct p101_env *env, struct p101_erro
     p101_observe_join_path(env, err, paths->resource_report, paths->dir, "resource-report.txt");
     p101_observe_join_path(env, err, paths->resource_json, paths->dir, "resource-report.json");
     p101_observe_join_path(env, err, paths->resource_stderr, paths->dir, "resource-tools.stderr.txt");
+    p101_observe_join_path(env, err, paths->concurrency_report, paths->dir, "concurrency-report.txt");
+    p101_observe_join_path(env, err, paths->concurrency_json, paths->dir, "concurrency-report.json");
+    p101_observe_join_path(env, err, paths->concurrency_stderr, paths->dir, "concurrency-tools.stderr.txt");
     p101_observe_join_path(env, err, paths->trace_tree, paths->dir, "trace-tree.txt");
     p101_observe_join_path(env, err, paths->trace_summary, paths->dir, "trace-summary.txt");
     p101_observe_join_path(env, err, paths->trace_stderr, paths->dir, "trace-tools.stderr.txt");
@@ -67,7 +70,7 @@ void p101_observe_join_path(const struct p101_env *env, struct p101_error *err, 
 {
     int written;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     written = p101_snprintf(env, err, destination, PATH_LEN, "%s/%s", dir, name);
 
     if(written < 0 || written >= PATH_LEN)
@@ -78,7 +81,7 @@ void p101_observe_join_path(const struct p101_env *env, struct p101_error *err, 
 
 void p101_observe_create_report_dir(const struct p101_env *env, struct p101_error *err, const char *path)
 {
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     p101_mkdir(env, err, path, REPORT_DIR_MODE);
 }
 
@@ -86,7 +89,7 @@ void p101_observe_create_empty_file(const struct p101_env *env, struct p101_erro
 {
     FILE *stream;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     stream = p101_fopen(env, err, path, "w");
 
     if(stream != NULL)
@@ -99,7 +102,7 @@ void p101_observe_write_command_file(const struct p101_env *env, struct p101_err
 {
     FILE *stream;
 
-    P101_TRACE(env);
+    P101_TRACE_SCOPE(env);
     stream = p101_fopen(env, err, path, "w");
 
     if(stream == NULL)
@@ -129,9 +132,21 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     intmax_t       generated_at_value;
     bool           have_time;
     int            have_host;
+    const char    *argument_logging;
+    const char    *result_logging;
 
-    P101_TRACE(env);
-    stream = p101_fopen(env, err, path, "w");
+    P101_TRACE_SCOPE(env);
+    stream           = p101_fopen(env, err, path, "w");
+    argument_logging = "redacted";
+    result_logging   = "redacted";
+    if(args->log_arguments)
+    {
+        argument_logging = "enabled";
+    }
+    if(args->log_results)
+    {
+        result_logging = "enabled";
+    }
 
     if(stream == NULL)
     {
@@ -157,8 +172,8 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     p101_fputs(env, err, "p101-observe manifest\n", stream);
     p101_fputs(env, err, "schema=p101-observe-manifest-v2\n", stream);
     p101_fprintf(env, err, stream, "run_id=%s\n", paths->run_id);
-    p101_fputs(env, err, "event_schema=p101-tool-event-format-v3\n", stream);
-    p101_fputs(env, err, "event_log_version=3\n", stream);
+    p101_fputs(env, err, "event_schema=" P101_TOOL_EVENT_SCHEMA_NAME "\n", stream);
+    p101_fprintf(env, err, stream, "event_log_version=%d\n", P101_TOOL_EVENT_LOG_VERSION);
     p101_fputs(env, err, "event_timestamp_fields=sequence,monotonic_ns,wall_unix_ns\n", stream);
     if(have_time)
     {
@@ -172,8 +187,11 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     }
     p101_fprintf(env, err, stream, "report_dir=%s\n", paths->dir);
     p101_fprintf(env, err, stream, "resource_tracker=%s\n", args->resource_tracker);
+    p101_fprintf(env, err, stream, "p101_sync_check=%s\n", args->p101_sync_check);
     p101_fprintf(env, err, stream, "p101_trace=%s\n", args->p101_trace);
     p101_fprintf(env, err, stream, "p101_report=%s\n", args->p101_report);
+    p101_fprintf(env, err, stream, "call_arguments=%s\n", argument_logging);
+    p101_fprintf(env, err, stream, "call_results=%s\n", result_logging);
     p101_fprintf(env, err, stream, "resource_log=%s\n", paths->resource_log);
     p101_fprintf(env, err, stream, "call_log=%s\n", paths->call_log);
     p101_fputs(env, err, "command=", stream);

@@ -12,10 +12,13 @@ struct arguments
 {
     const char  *report_dir;
     const char  *resource_tracker;
+    const char  *p101_sync_check;
     const char  *p101_trace;
     const char  *p101_report;
     char *const *command_argv;
     bool         verbose;
+    bool         log_arguments;
+    bool         log_results;
 };
 
 #endif    // P101_OBSERVE_ARGUMENTS_H
