@@ -32,7 +32,7 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
 
     while((opt = p101_getopt(env, argc, argv, ":hvARo:r:d:t:p:")) != -1 && p101_error_has_no_error(err))
     {
-        switch(opt)
+        switch(opt)    // GCOVR_EXCL_BR_LINE -- default is a defensive p101_getopt contract check
         {
             case 'h':
             {
@@ -82,7 +82,7 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
             {
                 char msg[MSG_LEN];
 
-                p101_snprintf(env, err, msg, sizeof(msg), "Option '-%c' requires an argument.", optopt ? optopt : '?');
+                p101_snprintf(env, err, msg, sizeof(msg), "Option '-%c' requires an argument.", optopt ? optopt : '?');    // GCOVR_EXCL_BR_LINE -- getopt supplies optopt for this case
                 P101_ERROR_RAISE_USER(err, msg, ERR_USAGE);
                 break;
             }
@@ -102,7 +102,7 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
                 P101_ERROR_RAISE_USER(err, msg, ERR_USAGE);
                 break;
             }
-            default:
+            default:    // GCOVR_EXCL_START
             {
                 char msg[MSG_LEN];
 
@@ -110,6 +110,7 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
                 P101_ERROR_RAISE_USER(err, msg, ERR_USAGE);
                 break;
             }
+                // GCOVR_EXCL_STOP
         }
     }
 

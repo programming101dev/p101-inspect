@@ -50,4 +50,29 @@ function(p101_add_test name)
     add_test(NAME ${name} COMMAND ${name})
 endfunction()
 
-p101_add_test(test_arguments test_arguments.c ../src/cli.c ../src/paths.c ../src/resource.c)
+p101_add_test(test_arguments
+    test_arguments.c
+    test_more.c
+    ../src/cli.c
+    ../src/paths.c
+    ../src/report.c
+    ../src/resource.c
+    ../src/runner.c
+    ../src/status.c
+)
+target_compile_definitions(test_arguments PRIVATE P101_OBSERVE_TESTING=1)
+
+add_executable(p101_observe_coverage_cli
+    ../src/cli.c
+    ../src/main.c
+    ../src/paths.c
+    ../src/report.c
+    ../src/resource.c
+    ../src/runner.c
+    ../src/status.c
+)
+target_include_directories(p101_observe_coverage_cli PRIVATE ${_P101_INC_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/../include")
+target_link_libraries(p101_observe_coverage_cli PRIVATE ${_P101_RESOLVED} m)
+target_compile_options(p101_observe_coverage_cli PRIVATE ${_COV})
+target_link_options(p101_observe_coverage_cli PRIVATE ${_COV})
+add_test(NAME test_cli COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/test_cli.sh" "$<TARGET_FILE:p101_observe_coverage_cli>")

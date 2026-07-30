@@ -34,11 +34,11 @@ bool p101_observe_tool_status_is_acceptable(int status)
 
 void p101_observe_print_status(const struct p101_env *env, struct p101_error *err, FILE *stream, const char *label, int status)
 {
-    if(WIFEXITED(status))
+    if(WIFEXITED(status))    // GCOVR_EXCL_BR_LINE -- libc macro has platform-specific internal branches
     {
         p101_fprintf(env, err, stream, "%s: exit=%d\n", label, WEXITSTATUS(status));
     }
-    else if(WIFSIGNALED(status))
+    else if(WIFSIGNALED(status))    // GCOVR_EXCL_BR_LINE -- libc macro has platform-specific internal branches
     {
         p101_fprintf(env, err, stream, "%s: signal=%d\n", label, WTERMSIG(status));
     }

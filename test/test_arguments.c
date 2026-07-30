@@ -13,6 +13,8 @@
 static struct p101_error *error;
 static struct p101_env   *env;
 
+void p101_observe_run_more_tests(void);
+
 void setUp(void)
 {
     error = p101_error_create(false);
@@ -105,7 +107,8 @@ static void test_parse_rejects_empty_reporter(void)
 
 static void test_parse_resource_summary_accepts_tracker_json(void)
 {
-    const char              json[] = "{\"schema\":\"p101-resource-tracker-findings-v3\",\"records\":7,\"fd_leaks\":1,\"allocation_leaks\":2,\"bad_releases\":3,\"exec_inheritances\":0,\"generic_resource_leaks\":4,\"generic_bad_releases\":5,\"malformed\":0,\"bad_version\":0,\"refused\":0,\"log_health\":{\"complete\":true}}";
+    const char json[] =
+        "{\"schema\":\"p101-resource-tracker-findings-v3\",\"records\":7,\"fd_leaks\":1,\"allocation_leaks\":2,\"bad_releases\":3,\"exec_inheritances\":0,\"generic_resource_leaks\":4,\"generic_bad_releases\":5,\"malformed\":0,\"bad_version\":0,\"refused\":0,\"log_health\":{\"complete\":true}}";
     struct resource_summary summary;
 
     p101_memset(env, &summary, 0, sizeof(summary));
@@ -166,5 +169,6 @@ int main(void)
     RUN_TEST(test_parse_resource_summary_accepts_tracker_json);
     RUN_TEST(test_join_path_rejects_long_paths);
     RUN_TEST(test_make_report_paths_includes_manifest_and_graph);
+    p101_observe_run_more_tests();
     return UNITY_END();
 }

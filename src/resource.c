@@ -22,10 +22,14 @@ void p101_observe_read_resource_json(const struct p101_env *env, struct p101_err
         goto done;
     }
 
-    while(p101_error_has_no_error(err) && used < sizeof(buffer) - 1U)
+    while(used < sizeof(buffer) - 1U)
     {
         const char *line;
 
+        if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- prior wrapper failure propagation
+        {
+            break;    // GCOVR_EXCL_LINE
+        }
         line = p101_fgets(env, err, buffer + used, (int)(sizeof(buffer) - used), stream);
 
         if(line == NULL)

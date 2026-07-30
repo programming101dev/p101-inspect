@@ -19,7 +19,7 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
 
     if(stream == NULL)
     {
-        goto done;
+        goto done;    // GCOVR_EXCL_LINE -- fopen failure propagation
     }
 
     p101_fputs(env, err, "p101-observe summary\n", stream);
@@ -95,7 +95,7 @@ void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_err
     stream = p101_fopen(env, err, paths->receipt, "w");
     if(stream == NULL)
     {
-        goto done;
+        goto done;    // GCOVR_EXCL_LINE -- fopen failure propagation
     }
 
     p101_fputs(env, err, "p101-observe receipt\n", stream);
@@ -153,9 +153,9 @@ static void write_artifact_fingerprint(const struct p101_env *env, struct p101_e
 {
     struct p101_tool_event_fingerprint fingerprint;
 
-    if(p101_error_has_error(err))
+    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- prior output failure propagation
     {
-        return;
+        return;    // GCOVR_EXCL_LINE
     }
     if(p101_tool_event_fingerprint_file(err, path, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_BYTES, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_RECORDS, &fingerprint) != 0)
     {
@@ -166,11 +166,11 @@ static void write_artifact_fingerprint(const struct p101_env *env, struct p101_e
 
 static void write_status(const struct p101_env *env, struct p101_error *err, FILE *stream, const char *role, int status)
 {
-    if(WIFEXITED(status))
+    if(WIFEXITED(status))    // GCOVR_EXCL_BR_LINE -- libc macro has platform-specific internal branches
     {
         p101_fprintf(env, err, stream, "status=%s\texit=%d\n", role, WEXITSTATUS(status));
     }
-    else if(WIFSIGNALED(status))
+    else if(WIFSIGNALED(status))    // GCOVR_EXCL_BR_LINE -- libc macro has platform-specific internal branches
     {
         p101_fprintf(env, err, stream, "status=%s\tsignal=%d\n", role, WTERMSIG(status));
     }
