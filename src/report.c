@@ -12,9 +12,15 @@ static void write_status(const struct p101_env *env, struct p101_error *err, FIL
 
 void p101_observe_write_summary_file(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result)
 {
-    FILE *stream;
+    const char *analysis_status;
+    FILE       *stream;
 
     P101_TRACE_SCOPE(env);
+    analysis_status = "deferred (capture-only)";
+    if(result->analysis_ran)
+    {
+        analysis_status = "completed";
+    }
     stream = p101_fopen(env, err, paths->summary, "w");
 
     if(stream == NULL)
@@ -26,16 +32,20 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
     p101_fputs(env, err, "====================\n\n", stream);
     p101_fprintf(env, err, stream, "command: %s\n", args->command_argv[0]);
     p101_fprintf(env, err, stream, "report_dir: %s\n\n", paths->dir);
+    p101_fprintf(env, err, stream, "analysis: %s\n", analysis_status);
     p101_observe_print_status(env, err, stream, "command", result->command_status);
-    p101_observe_print_status(env, err, stream, "p101-resource-tracker", result->resource_status);
-    p101_observe_print_status(env, err, stream, "p101-resource-tracker-json", result->resource_json_status);
-    p101_observe_print_status(env, err, stream, "p101-sync-check", result->concurrency_status);
-    p101_observe_print_status(env, err, stream, "p101-sync-check-json", result->concurrency_json_status);
-    p101_observe_print_status(env, err, stream, "p101-trace-tree", result->trace_tree_status);
-    p101_observe_print_status(env, err, stream, "p101-trace-summary", result->trace_summary_status);
-    p101_observe_print_status(env, err, stream, "p101-report", result->report_status);
-    p101_observe_print_status(env, err, stream, "p101-report-json", result->report_json_status);
-    p101_observe_print_status(env, err, stream, "p101-report-mermaid", result->report_mermaid_status);
+    if(result->analysis_ran)
+    {
+        p101_observe_print_status(env, err, stream, "p101-resource-tracker", result->resource_status);
+        p101_observe_print_status(env, err, stream, "p101-resource-tracker-json", result->resource_json_status);
+        p101_observe_print_status(env, err, stream, "p101-sync-check", result->concurrency_status);
+        p101_observe_print_status(env, err, stream, "p101-sync-check-json", result->concurrency_json_status);
+        p101_observe_print_status(env, err, stream, "p101-trace-tree", result->trace_tree_status);
+        p101_observe_print_status(env, err, stream, "p101-trace-summary", result->trace_summary_status);
+        p101_observe_print_status(env, err, stream, "p101-report", result->report_status);
+        p101_observe_print_status(env, err, stream, "p101-report-json", result->report_json_status);
+        p101_observe_print_status(env, err, stream, "p101-report-mermaid", result->report_mermaid_status);
+    }
 
     if(result->resources.parsed)
     {
@@ -64,19 +74,23 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
     p101_fprintf(env, err, stream, "  stderr: %s\n", paths->stderr_text);
     p101_fprintf(env, err, stream, "  resources: %s\n", paths->resource_log);
     p101_fprintf(env, err, stream, "  calls: %s\n", paths->call_log);
-    p101_fprintf(env, err, stream, "  resource_report: %s\n", paths->resource_report);
-    p101_fprintf(env, err, stream, "  resource_json: %s\n", paths->resource_json);
-    p101_fprintf(env, err, stream, "  resource_tools_stderr: %s\n", paths->resource_stderr);
-    p101_fprintf(env, err, stream, "  concurrency_report: %s\n", paths->concurrency_report);
-    p101_fprintf(env, err, stream, "  concurrency_json: %s\n", paths->concurrency_json);
-    p101_fprintf(env, err, stream, "  concurrency_tools_stderr: %s\n", paths->concurrency_stderr);
-    p101_fprintf(env, err, stream, "  trace_tree: %s\n", paths->trace_tree);
-    p101_fprintf(env, err, stream, "  trace_summary: %s\n", paths->trace_summary);
-    p101_fprintf(env, err, stream, "  trace_tools_stderr: %s\n", paths->trace_stderr);
-    p101_fprintf(env, err, stream, "  correlated_report: %s\n", paths->correlated_report);
-    p101_fprintf(env, err, stream, "  correlated_json: %s\n", paths->correlated_json);
-    p101_fprintf(env, err, stream, "  resource_lifetimes_graph: %s\n", paths->correlated_mermaid);
-    p101_fprintf(env, err, stream, "  report_tools_stderr: %s\n", paths->report_stderr);
+    if(result->analysis_ran)
+    {
+        p101_fprintf(env, err, stream, "  resource_report: %s\n", paths->resource_report);
+        p101_fprintf(env, err, stream, "  resource_json: %s\n", paths->resource_json);
+        p101_fprintf(env, err, stream, "  resource_tools_stderr: %s\n", paths->resource_stderr);
+        p101_fprintf(env, err, stream, "  concurrency_report: %s\n", paths->concurrency_report);
+        p101_fprintf(env, err, stream, "  concurrency_json: %s\n", paths->concurrency_json);
+        p101_fprintf(env, err, stream, "  concurrency_tools_stderr: %s\n", paths->concurrency_stderr);
+        p101_fprintf(env, err, stream, "  trace_tree: %s\n", paths->trace_tree);
+        p101_fprintf(env, err, stream, "  trace_summary: %s\n", paths->trace_summary);
+        p101_fprintf(env, err, stream, "  trace_tools_stderr: %s\n", paths->trace_stderr);
+        p101_fprintf(env, err, stream, "  correlated_report: %s\n", paths->correlated_report);
+        p101_fprintf(env, err, stream, "  correlated_json: %s\n", paths->correlated_json);
+        p101_fprintf(env, err, stream, "  resource_lifetimes_graph: %s\n", paths->correlated_mermaid);
+        p101_fprintf(env, err, stream, "  report_driver_output: %s\n", paths->report_driver_output);
+        p101_fprintf(env, err, stream, "  report_tools_stderr: %s\n", paths->report_stderr);
+    }
     p101_fprintf(env, err, stream, "  manifest: %s\n", paths->manifest);
     p101_fprintf(env, err, stream, "  receipt: %s\n", paths->receipt);
 
@@ -89,9 +103,15 @@ done:
 
 void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_error *err, const struct report_paths *paths, const struct observe_result *result)
 {
-    FILE *stream;
+    const char *analysis_status;
+    FILE       *stream;
 
     P101_TRACE_SCOPE(env);
+    analysis_status = "deferred";
+    if(result->analysis_ran)
+    {
+        analysis_status = "completed";
+    }
     stream = p101_fopen(env, err, paths->receipt, "w");
     if(stream == NULL)
     {
@@ -107,17 +127,21 @@ void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_err
     p101_fputs(env, err, "durability=buffered-until-close\n", stream);
     p101_fputs(env, err, "fingerprint=fnv1a64\n", stream);
     p101_fputs(env, err, "fingerprint_security=change-detection-only\n", stream);
+    p101_fprintf(env, err, stream, "analysis=%s\n", analysis_status);
 
     write_status(env, err, stream, "command", result->command_status);
-    write_status(env, err, stream, "resource_tracker", result->resource_status);
-    write_status(env, err, stream, "resource_tracker_json", result->resource_json_status);
-    write_status(env, err, stream, "concurrency", result->concurrency_status);
-    write_status(env, err, stream, "concurrency_json", result->concurrency_json_status);
-    write_status(env, err, stream, "trace_tree", result->trace_tree_status);
-    write_status(env, err, stream, "trace_summary", result->trace_summary_status);
-    write_status(env, err, stream, "report", result->report_status);
-    write_status(env, err, stream, "report_json", result->report_json_status);
-    write_status(env, err, stream, "report_mermaid", result->report_mermaid_status);
+    if(result->analysis_ran)
+    {
+        write_status(env, err, stream, "resource_tracker", result->resource_status);
+        write_status(env, err, stream, "resource_tracker_json", result->resource_json_status);
+        write_status(env, err, stream, "concurrency", result->concurrency_status);
+        write_status(env, err, stream, "concurrency_json", result->concurrency_json_status);
+        write_status(env, err, stream, "trace_tree", result->trace_tree_status);
+        write_status(env, err, stream, "trace_summary", result->trace_summary_status);
+        write_status(env, err, stream, "report", result->report_status);
+        write_status(env, err, stream, "report_json", result->report_json_status);
+        write_status(env, err, stream, "report_mermaid", result->report_mermaid_status);
+    }
 
     write_artifact_fingerprint(env, err, stream, "manifest", paths->manifest);
     write_artifact_fingerprint(env, err, stream, "command", paths->command);
@@ -125,19 +149,23 @@ void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_err
     write_artifact_fingerprint(env, err, stream, "stderr", paths->stderr_text);
     write_artifact_fingerprint(env, err, stream, "resources", paths->resource_log);
     write_artifact_fingerprint(env, err, stream, "calls", paths->call_log);
-    write_artifact_fingerprint(env, err, stream, "resource_report", paths->resource_report);
-    write_artifact_fingerprint(env, err, stream, "resource_json", paths->resource_json);
-    write_artifact_fingerprint(env, err, stream, "resource_tools_stderr", paths->resource_stderr);
-    write_artifact_fingerprint(env, err, stream, "concurrency_report", paths->concurrency_report);
-    write_artifact_fingerprint(env, err, stream, "concurrency_json", paths->concurrency_json);
-    write_artifact_fingerprint(env, err, stream, "concurrency_tools_stderr", paths->concurrency_stderr);
-    write_artifact_fingerprint(env, err, stream, "trace_tree", paths->trace_tree);
-    write_artifact_fingerprint(env, err, stream, "trace_summary", paths->trace_summary);
-    write_artifact_fingerprint(env, err, stream, "trace_tools_stderr", paths->trace_stderr);
-    write_artifact_fingerprint(env, err, stream, "correlated_report", paths->correlated_report);
-    write_artifact_fingerprint(env, err, stream, "correlated_json", paths->correlated_json);
-    write_artifact_fingerprint(env, err, stream, "resource_lifetimes_graph", paths->correlated_mermaid);
-    write_artifact_fingerprint(env, err, stream, "report_tools_stderr", paths->report_stderr);
+    if(result->analysis_ran)
+    {
+        write_artifact_fingerprint(env, err, stream, "resource_report", paths->resource_report);
+        write_artifact_fingerprint(env, err, stream, "resource_json", paths->resource_json);
+        write_artifact_fingerprint(env, err, stream, "resource_tools_stderr", paths->resource_stderr);
+        write_artifact_fingerprint(env, err, stream, "concurrency_report", paths->concurrency_report);
+        write_artifact_fingerprint(env, err, stream, "concurrency_json", paths->concurrency_json);
+        write_artifact_fingerprint(env, err, stream, "concurrency_tools_stderr", paths->concurrency_stderr);
+        write_artifact_fingerprint(env, err, stream, "trace_tree", paths->trace_tree);
+        write_artifact_fingerprint(env, err, stream, "trace_summary", paths->trace_summary);
+        write_artifact_fingerprint(env, err, stream, "trace_tools_stderr", paths->trace_stderr);
+        write_artifact_fingerprint(env, err, stream, "correlated_report", paths->correlated_report);
+        write_artifact_fingerprint(env, err, stream, "correlated_json", paths->correlated_json);
+        write_artifact_fingerprint(env, err, stream, "resource_lifetimes_graph", paths->correlated_mermaid);
+        write_artifact_fingerprint(env, err, stream, "report_driver_output", paths->report_driver_output);
+        write_artifact_fingerprint(env, err, stream, "report_tools_stderr", paths->report_stderr);
+    }
     write_artifact_fingerprint(env, err, stream, "summary", paths->summary);
 
     p101_fputs(env, err, "does_not_prove=complete instrumentation, external truth, global process ordering, or cryptographic authenticity\n", stream);

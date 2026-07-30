@@ -9,6 +9,7 @@
 
 struct observe_result
 {
+    bool                    analysis_ran;
     int                     command_status;
     int                     resource_status;
     int                     resource_json_status;

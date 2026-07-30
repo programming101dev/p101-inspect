@@ -30,7 +30,7 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
         p101_observe_usage(env, err, argv[0], EXIT_SUCCESS, NULL);
     }
 
-    while((opt = p101_getopt(env, argc, argv, ":hvARo:r:d:t:p:")) != -1 && p101_error_has_no_error(err))
+    while((opt = p101_getopt(env, argc, argv, ":hvCARo:r:d:t:p:")) != -1 && p101_error_has_no_error(err))
     {
         switch(opt)    // GCOVR_EXCL_BR_LINE -- default is a defensive p101_getopt contract check
         {
@@ -41,6 +41,11 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
             case 'v':
             {
                 args->verbose = true;
+                break;
+            }
+            case 'C':
+            {
+                args->capture_only = true;
                 break;
             }
             case 'A':
@@ -136,25 +141,25 @@ void p101_observe_check_arguments(const struct p101_env *env, struct p101_error 
         goto done;
     }
 
-    if(args->resource_tracker == NULL || args->resource_tracker[0] == '\0')
+    if(!args->capture_only && (args->resource_tracker == NULL || args->resource_tracker[0] == '\0'))
     {
         P101_ERROR_RAISE_USER(err, "The p101-resource-tracker path must not be empty.", ERR_USAGE);
         goto done;
     }
 
-    if(args->p101_trace == NULL || args->p101_trace[0] == '\0')
+    if(!args->capture_only && (args->p101_trace == NULL || args->p101_trace[0] == '\0'))
     {
         P101_ERROR_RAISE_USER(err, "The p101-trace path must not be empty.", ERR_USAGE);
         goto done;
     }
 
-    if(args->p101_sync_check == NULL || args->p101_sync_check[0] == '\0')
+    if(!args->capture_only && (args->p101_sync_check == NULL || args->p101_sync_check[0] == '\0'))
     {
         P101_ERROR_RAISE_USER(err, "The p101-sync-check path must not be empty.", ERR_USAGE);
         goto done;
     }
 
-    if(args->p101_report == NULL || args->p101_report[0] == '\0')
+    if(!args->capture_only && (args->p101_report == NULL || args->p101_report[0] == '\0'))
     {
         P101_ERROR_RAISE_USER(err, "The p101-report path must not be empty.", ERR_USAGE);
         goto done;
@@ -174,10 +179,11 @@ _Noreturn void p101_observe_usage(const struct p101_env *env, struct p101_error 
         p101_fprintf(env, err, stderr, "%s\n\n", message);
     }
 
-    p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-A] [-R] [-o <report-dir>] [-r <p101-resource-tracker>] [-d <p101-sync-check>] [-t <p101-trace>] [-p <p101-report>] -- <command> [args...]\n", program_name);
+    p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-C] [-A] [-R] [-o <report-dir>] [-r <p101-resource-tracker>] [-d <p101-sync-check>] [-t <p101-trace>] [-p <p101-report>] -- <command> [args...]\n", program_name);
     p101_fputs(env, err, "Options:\n", stderr);
     p101_fputs(env, err, "  -h                       Display this help message and exit\n", stderr);
     p101_fputs(env, err, "  -v                       Enable verbose p101 tracing in p101-observe\n", stderr);
+    p101_fputs(env, err, "  -C                       Capture only; defer all offline analysis\n", stderr);
     p101_fputs(env, err, "  -A                       Opt in to call-argument values (may contain sensitive data)\n", stderr);
     p101_fputs(env, err, "  -R                       Opt in to call-result values (may contain sensitive data)\n", stderr);
     p101_fputs(env, err, "  -o <report-dir>          Directory to create for the report\n", stderr);

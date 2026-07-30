@@ -27,6 +27,7 @@ struct report_paths
     char correlated_report[PATH_LEN];
     char correlated_json[PATH_LEN];
     char correlated_mermaid[PATH_LEN];
+    char report_driver_output[PATH_LEN];
     char report_stderr[PATH_LEN];
     char summary[PATH_LEN];
     char manifest[PATH_LEN];

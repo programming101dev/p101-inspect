@@ -19,6 +19,7 @@ struct arguments
     bool         verbose;
     bool         log_arguments;
     bool         log_results;
+    bool         capture_only;
 };
 
 #endif    // P101_OBSERVE_ARGUMENTS_H

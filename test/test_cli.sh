@@ -32,11 +32,22 @@ expect 2 -r "" -- "$true_path"
 expect 2 -d "" -- "$true_path"
 expect 2 -t "" -- "$true_path"
 expect 2 -p "" -- "$true_path"
+expect 0 -C -o "$work/capture-only" -- "$true_path"
+test -e "$work/capture-only/resources.log"
+test -e "$work/capture-only/calls.log"
+test ! -e "$work/capture-only/correlated-report.txt"
+grep -q 'analysis=deferred' "$work/capture-only/receipt.txt"
+expect 1 -C -o "$work/capture-failure" -- "$false_path"
 
 cat >"$work/helper" <<'HELPER'
 #!/usr/bin/env bash
 if [ "${1:-}" = "-j" ]; then
   printf '{"schema":"p101-resource-tracker-findings-v3","records":0,"fd_leaks":0,"allocation_leaks":0,"bad_releases":0,"exec_inheritances":0,"generic_resource_leaks":0,"generic_bad_releases":0,"malformed":0,"bad_version":0,"refused":0,"log_health":{"complete":true}}\n'
+fi
+if [ "${1:-}" = "-b" ]; then
+  : >"$2/correlated-report.txt"
+  : >"$2/correlated-report.json"
+  : >"$2/resource-lifetimes.md"
 fi
 exit "${P101_TEST_HELPER_STATUS:-0}"
 HELPER

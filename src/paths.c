@@ -57,6 +57,7 @@ void p101_observe_make_report_paths(const struct p101_env *env, struct p101_erro
     p101_observe_join_path(env, err, paths->correlated_report, paths->dir, "correlated-report.txt");
     p101_observe_join_path(env, err, paths->correlated_json, paths->dir, "correlated-report.json");
     p101_observe_join_path(env, err, paths->correlated_mermaid, paths->dir, "resource-lifetimes.md");
+    p101_observe_join_path(env, err, paths->report_driver_output, paths->dir, "report-driver.stdout.txt");
     p101_observe_join_path(env, err, paths->report_stderr, paths->dir, "report-tools.stderr.txt");
     p101_observe_join_path(env, err, paths->summary, paths->dir, "summary.txt");
     p101_observe_join_path(env, err, paths->manifest, paths->dir, "manifest.txt");

@@ -30,8 +30,9 @@ set(LIBRARY_TARGETS "")
 set(main_OUTPUT_NAME p101-observe)
 
 set(main_SOURCES
-        src/cli.c
-        src/main.c
+    src/cli.c
+    src/child_execution.c
+    src/main.c
         src/paths.c
         src/report.c
         src/resource.c
@@ -57,5 +58,6 @@ set(main_LINK_LIBRARIES
         p101_tool_event
         p101_c
         p101_posix
+        p101_util
         m
 )

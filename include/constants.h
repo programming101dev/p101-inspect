@@ -30,6 +30,7 @@ enum
     RUN_ID_LEN       = 128,
     READ_BUF_LEN     = 4096,
     JSON_BUF_LEN     = 65536,
+    REPORT_TOOL_ARGV_LEN = 5,
     EXEC_FAILURE     = 127,
     REPORT_DIR_MODE  = 0755,
     REPORT_FILE_MODE = 0644,

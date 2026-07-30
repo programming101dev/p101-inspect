@@ -1,61 +1,18 @@
 #include "runner.h"
+#include "child_execution.h"
 #include "constants.h"
 #include "paths.h"
 #include "report.h"
 #include "resource.h"
 #include "status.h"
-#include <fcntl.h>
 #include <p101_c/p101_stdio.h>
-#include <p101_c/p101_stdlib.h>
 #include <p101_c/p101_string.h>
-#include <p101_posix/p101_fcntl.h>
-#include <p101_posix/p101_stdlib.h>
-#include <p101_posix/p101_unistd.h>
-#include <p101_posix/sys/p101_wait.h>
 #include <stdio.h>
-
-static int  run_observed_command(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths);
-static int  run_tool_capture(const struct p101_env *env, struct p101_error *err, char *const tool_argv[], const char *stdout_path, const char *stderr_path);
-static void redirect_child_output(const struct p101_env *env, struct p101_error *err, const char *stdout_path, const char *stderr_path);
-static void set_observed_environment(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths);
-static void set_fault_environment_from_parent_request(const struct p101_env *env, struct p101_error *err);
-static void setenv_if_present(const struct p101_env *env, struct p101_error *err, const char *source_name, const char *target_name);
-static void clear_observe_environment(const struct p101_env *env, struct p101_error *err);
-static void clear_helper_environment(const struct p101_env *env, struct p101_error *err);
+#include <stdlib.h>
 static bool tool_statuses_are_acceptable(const struct observe_result *result);
 static bool result_has_findings(const struct observe_result *result);
 
 #ifdef P101_OBSERVE_TESTING
-void p101_observe_test_redirect_child_output(const struct p101_env *env, struct p101_error *err, const char *stdout_path, const char *stderr_path)
-{
-    redirect_child_output(env, err, stdout_path, stderr_path);
-}
-
-void p101_observe_test_set_observed_environment(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths)
-{
-    set_observed_environment(env, err, args, paths);
-}
-
-void p101_observe_test_set_fault_environment(const struct p101_env *env, struct p101_error *err)
-{
-    set_fault_environment_from_parent_request(env, err);
-}
-
-void p101_observe_test_setenv_if_present(const struct p101_env *env, struct p101_error *err, const char *source_name, const char *target_name)
-{
-    setenv_if_present(env, err, source_name, target_name);
-}
-
-void p101_observe_test_clear_observe_environment(const struct p101_env *env, struct p101_error *err)
-{
-    clear_observe_environment(env, err);
-}
-
-void p101_observe_test_clear_helper_environment(const struct p101_env *env, struct p101_error *err)
-{
-    clear_helper_environment(env, err);
-}
-
 bool p101_observe_test_tool_statuses_are_acceptable(const struct observe_result *result)
 {
     return tool_statuses_are_acceptable(result);
@@ -126,11 +83,9 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     char                 *concurrency_json_argv[4];
     char                 *trace_tree_argv[3];
     char                 *trace_summary_argv[4];
-    char                 *report_argv[3];
-    char                 *report_json_argv[4];
-    char                 *report_mermaid_argv[4];
+    char                 *report_argv[REPORT_TOOL_ARGV_LEN];
     char                  json_option[]    = "-j";
-    char                  mermaid_option[] = "-m";
+    char                  bundle_option[]  = "-b";
     char                  summary_option[] = "-s";
     char                  resource_tracker_path[PATH_LEN];
     char                  concurrency_path[PATH_LEN];
@@ -182,17 +137,38 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     p101_strncpy(env, report_path, args->p101_report, sizeof(report_path) - 1U);
     report_path[sizeof(report_path) - 1U] = '\0';
 
-    result.command_status = run_observed_command(env, err, args, &paths);
+    result.command_status = p101_observe_run_observed_command(env, err, args, &paths);
 
     if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
     {
         goto done;    // GCOVR_EXCL_LINE
     }
 
+    if(args->capture_only)
+    {
+        p101_observe_write_summary_file(env, err, args, &paths, &result);
+        p101_observe_write_receipt_file(env, err, &paths, &result);
+        if(p101_error_has_error(err))
+        {
+            goto done;
+        }
+        p101_printf(env, err, "p101-observe: captured run in %s\n", paths.dir);
+        if(p101_observe_status_is_success(result.command_status))
+        {
+            ret_val = EXIT_SUCCESS;
+        }
+        else
+        {
+            ret_val = EXIT_FINDINGS;
+        }
+        goto done;
+    }
+
+    result.analysis_ran       = true;
     concurrency_argv[0]       = concurrency_path;
     concurrency_argv[1]       = paths.resource_log;
     concurrency_argv[2]       = NULL;
-    result.concurrency_status = run_tool_capture(env, err, concurrency_argv, paths.concurrency_report, paths.concurrency_stderr);
+    result.concurrency_status = p101_observe_run_tool_capture(env, err, concurrency_argv, paths.concurrency_report, paths.concurrency_stderr);
 
     if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
     {
@@ -203,7 +179,7 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     concurrency_json_argv[1]       = json_option;
     concurrency_json_argv[2]       = paths.resource_log;
     concurrency_json_argv[3]       = NULL;
-    result.concurrency_json_status = run_tool_capture(env, err, concurrency_json_argv, paths.concurrency_json, paths.concurrency_stderr);
+    result.concurrency_json_status = p101_observe_run_tool_capture(env, err, concurrency_json_argv, paths.concurrency_json, paths.concurrency_stderr);
 
     if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
     {
@@ -213,7 +189,7 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     resource_argv[0]       = resource_tracker_path;
     resource_argv[1]       = paths.resource_log;
     resource_argv[2]       = NULL;
-    result.resource_status = run_tool_capture(env, err, resource_argv, paths.resource_report, paths.resource_stderr);
+    result.resource_status = p101_observe_run_tool_capture(env, err, resource_argv, paths.resource_report, paths.resource_stderr);
 
     if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
     {
@@ -224,7 +200,7 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     resource_json_argv[1]       = json_option;
     resource_json_argv[2]       = paths.resource_log;
     resource_json_argv[3]       = NULL;
-    result.resource_json_status = run_tool_capture(env, err, resource_json_argv, paths.resource_json, paths.resource_stderr);
+    result.resource_json_status = p101_observe_run_tool_capture(env, err, resource_json_argv, paths.resource_json, paths.resource_stderr);
 
     if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
     {
@@ -241,7 +217,7 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     trace_tree_argv[0]       = trace_path;
     trace_tree_argv[1]       = paths.call_log;
     trace_tree_argv[2]       = NULL;
-    result.trace_tree_status = run_tool_capture(env, err, trace_tree_argv, paths.trace_tree, paths.trace_stderr);
+    result.trace_tree_status = p101_observe_run_tool_capture(env, err, trace_tree_argv, paths.trace_tree, paths.trace_stderr);
 
     if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
     {
@@ -252,7 +228,7 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     trace_summary_argv[1]       = summary_option;
     trace_summary_argv[2]       = paths.call_log;
     trace_summary_argv[3]       = NULL;
-    result.trace_summary_status = run_tool_capture(env, err, trace_summary_argv, paths.trace_summary, paths.trace_stderr);
+    result.trace_summary_status = p101_observe_run_tool_capture(env, err, trace_summary_argv, paths.trace_summary, paths.trace_stderr);
 
     if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
     {
@@ -260,31 +236,19 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     }
 
     report_argv[0]       = report_path;
-    report_argv[1]       = paths.dir;
-    report_argv[2]       = NULL;
-    result.report_status = run_tool_capture(env, err, report_argv, paths.correlated_report, paths.report_stderr);
+    report_argv[1]       = bundle_option;
+    report_argv[2]       = paths.dir;
+    report_argv[3]       = paths.dir;
+    report_argv[4]       = NULL;
+    result.report_status = p101_observe_run_tool_capture(env, err, report_argv, paths.report_driver_output, paths.report_stderr);
 
     if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
     {
         goto done;    // GCOVR_EXCL_LINE
     }
 
-    report_json_argv[0]       = report_path;
-    report_json_argv[1]       = json_option;
-    report_json_argv[2]       = paths.dir;
-    report_json_argv[3]       = NULL;
-    result.report_json_status = run_tool_capture(env, err, report_json_argv, paths.correlated_json, paths.report_stderr);
-
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
-    {
-        goto done;    // GCOVR_EXCL_LINE
-    }
-
-    report_mermaid_argv[0]       = report_path;
-    report_mermaid_argv[1]       = mermaid_option;
-    report_mermaid_argv[2]       = paths.dir;
-    report_mermaid_argv[3]       = NULL;
-    result.report_mermaid_status = run_tool_capture(env, err, report_mermaid_argv, paths.correlated_mermaid, paths.report_stderr);
+    result.report_json_status    = result.report_status;
+    result.report_mermaid_status = result.report_status;
 
     if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
     {
@@ -329,185 +293,4 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
 
 done:
     return ret_val;
-}
-
-static int run_observed_command(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths)
-{
-    int   status;
-    pid_t pid;
-
-    P101_TRACE_SCOPE(env);
-    status = 0;
-    pid    = p101_fork(env, err);
-
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- fork failure is an OS-level defensive path
-    {
-        goto done;    // GCOVR_EXCL_LINE
-    }
-
-    // The child path is exercised by the CLI tests, but exec replaces the
-    // instrumented image before gcov can flush that child's counters.
-    // GCOVR_EXCL_START
-    if(pid == 0)
-    {
-        clear_observe_environment(env, err);
-        redirect_child_output(env, err, paths->stdout_text, paths->stderr_text);
-        set_observed_environment(env, err, args, paths);
-
-        if(p101_error_has_error(err))
-        {
-            p101_fprintf(env, err, stderr, "p101-observe: child setup failed: %s\n", p101_error_get_message(err));
-            p101_posix_exit_immediately(env, EXEC_FAILURE);
-        }
-
-        p101_execvp(env, err, args->command_argv[0], args->command_argv);
-        p101_fprintf(env, err, stderr, "p101-observe: exec failed for %s: %s\n", args->command_argv[0], p101_error_get_message(err));
-        p101_posix_exit_immediately(env, EXEC_FAILURE);
-    }
-    // GCOVR_EXCL_STOP
-
-    p101_waitpid(env, err, pid, &status, 0);
-
-done:
-    return status;
-}
-
-static int run_tool_capture(const struct p101_env *env, struct p101_error *err, char *const tool_argv[], const char *stdout_path, const char *stderr_path)
-{
-    int   status;
-    pid_t pid;
-
-    P101_TRACE_SCOPE(env);
-    status = 0;
-    pid    = p101_fork(env, err);
-
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- fork failure is an OS-level defensive path
-    {
-        goto done;    // GCOVR_EXCL_LINE
-    }
-
-    // The child path is exercised by the CLI tests, but exec replaces the
-    // instrumented image before gcov can flush that child's counters.
-    // GCOVR_EXCL_START
-    if(pid == 0)
-    {
-        clear_helper_environment(env, err);
-        redirect_child_output(env, err, stdout_path, stderr_path);
-
-        if(p101_error_has_error(err))
-        {
-            p101_fprintf(env, err, stderr, "p101-observe: tool setup failed: %s\n", p101_error_get_message(err));
-            p101_posix_exit_immediately(env, EXEC_FAILURE);
-        }
-
-        p101_execvp(env, err, tool_argv[0], tool_argv);
-        p101_fprintf(env, err, stderr, "p101-observe: exec failed for %s: %s\n", tool_argv[0], p101_error_get_message(err));
-        p101_posix_exit_immediately(env, EXEC_FAILURE);
-    }
-    // GCOVR_EXCL_STOP
-
-    p101_waitpid(env, err, pid, &status, 0);
-
-done:
-    return status;
-}
-
-static void redirect_child_output(const struct p101_env *env, struct p101_error *err, const char *stdout_path, const char *stderr_path)
-{
-    int stdout_fd;
-    int stderr_fd;
-
-    P101_TRACE_SCOPE(env);
-    stdout_fd = p101_open(env, err, stdout_path, O_WRONLY | O_CREAT | O_TRUNC, REPORT_FILE_MODE);
-
-    if(p101_error_has_error(err))
-    {
-        goto done;
-    }
-
-    stderr_fd = p101_open(env, err, stderr_path, O_WRONLY | O_CREAT | O_TRUNC, REPORT_FILE_MODE);
-
-    if(p101_error_has_error(err))
-    {
-        p101_close(env, err, stdout_fd);
-        goto done;
-    }
-
-    p101_dup2(env, err, stdout_fd, STDOUT_FILENO);
-    p101_dup2(env, err, stderr_fd, STDERR_FILENO);
-    p101_close(env, err, stdout_fd);
-    p101_close(env, err, stderr_fd);
-
-done:
-    return;
-}
-
-static void set_observed_environment(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths)
-{
-    P101_TRACE_SCOPE(env);
-    p101_setenv(env, err, RESOURCE_LOG_ENV, paths->resource_log, 1);
-    p101_setenv(env, err, CALL_LOG_ENV, paths->call_log, 1);
-    if(args->log_arguments)
-    {
-        p101_setenv(env, err, CALL_LOG_ARGS_ENV, "1", 1);
-    }
-    if(args->log_results)
-    {
-        p101_setenv(env, err, CALL_LOG_RESULT_ENV, "1", 1);
-    }
-    set_fault_environment_from_parent_request(env, err);
-}
-
-static void set_fault_environment_from_parent_request(const struct p101_env *env, struct p101_error *err)
-{
-    P101_TRACE_SCOPE(env);
-    setenv_if_present(env, err, CHILD_FAULT_CALL_ENV, FAULT_CALL_ENV);
-    setenv_if_present(env, err, CHILD_FAULT_ERRNO_ENV, FAULT_ERRNO_ENV);
-    setenv_if_present(env, err, CHILD_FAULT_LOG_ENV, FAULT_LOG_ENV);
-    setenv_if_present(env, err, CHILD_FAULT_NAME_ENV, FAULT_NAME_ENV);
-    setenv_if_present(env, err, CHILD_FAULT_MODE_ENV, FAULT_MODE_ENV);
-    setenv_if_present(env, err, CHILD_FAULT_AMOUNT_ENV, FAULT_AMOUNT_ENV);
-    setenv_if_present(env, err, CHILD_FAULT_REPEAT_ENV, FAULT_REPEAT_ENV);
-}
-
-static void setenv_if_present(const struct p101_env *env, struct p101_error *err, const char *source_name, const char *target_name)
-{
-    const char *value;
-
-    P101_TRACE_SCOPE(env);
-    value = p101_getenv(env, source_name);
-
-    if(value != NULL && value[0] != '\0')
-    {
-        p101_setenv(env, err, target_name, value, 1);
-    }
-}
-
-static void clear_observe_environment(const struct p101_env *env, struct p101_error *err)
-{
-    P101_TRACE_SCOPE(env);
-    p101_unsetenv(env, err, RESOURCE_LOG_ENV);
-    p101_unsetenv(env, err, CALL_LOG_ENV);
-    p101_unsetenv(env, err, CALL_LOG_ARGS_ENV);
-    p101_unsetenv(env, err, CALL_LOG_RESULT_ENV);
-}
-
-static void clear_helper_environment(const struct p101_env *env, struct p101_error *err)
-{
-    P101_TRACE_SCOPE(env);
-    clear_observe_environment(env, err);
-    p101_unsetenv(env, err, FAULT_CALL_ENV);
-    p101_unsetenv(env, err, FAULT_ERRNO_ENV);
-    p101_unsetenv(env, err, FAULT_LOG_ENV);
-    p101_unsetenv(env, err, FAULT_NAME_ENV);
-    p101_unsetenv(env, err, FAULT_MODE_ENV);
-    p101_unsetenv(env, err, FAULT_AMOUNT_ENV);
-    p101_unsetenv(env, err, FAULT_REPEAT_ENV);
-    p101_unsetenv(env, err, CHILD_FAULT_CALL_ENV);
-    p101_unsetenv(env, err, CHILD_FAULT_ERRNO_ENV);
-    p101_unsetenv(env, err, CHILD_FAULT_LOG_ENV);
-    p101_unsetenv(env, err, CHILD_FAULT_NAME_ENV);
-    p101_unsetenv(env, err, CHILD_FAULT_MODE_ENV);
-    p101_unsetenv(env, err, CHILD_FAULT_AMOUNT_ENV);
-    p101_unsetenv(env, err, CHILD_FAULT_REPEAT_ENV);
 }

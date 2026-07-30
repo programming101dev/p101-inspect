@@ -10,9 +10,15 @@ It does not replace the lower-level tools. It bundles their ordinary workflow so
 students do not have to remember the environment variables and follow-up
 commands.
 
+Use `-C` for capture-only operation. It records the command, stdout, stderr,
+resource and call streams, manifest, and receipt without running analyzers.
+The resulting immutable directory can be analyzed later with `p101-report` or
+the specialized compatibility tools. This is the explicit capture/analysis
+boundary; ordinary operation still performs both for convenience.
+
 ## Usage
 
-    p101-observe [-h] [-v] [-A] [-R] [-o <report-dir>] [-r <p101-resource-tracker>] [-d <p101-sync-check>] [-t <p101-trace>] [-p <p101-report>] -- <command> [args...]
+    p101-observe [-h] [-v] [-C] [-A] [-R] [-o <report-dir>] [-r <p101-resource-tracker>] [-d <p101-sync-check>] [-t <p101-trace>] [-p <p101-report>] -- <command> [args...]
 
 Examples:
 
