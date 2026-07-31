@@ -5,10 +5,10 @@
 #include <p101_c/p101_stdio.h>
 #include <p101_c/p101_string.h>
 #include <p101_c/p101_time.h>
-#include <p101_posix/p101_time.h>
-#include <p101_posix/p101_unistd.h>
-#include <p101_posix/sys/p101_stat.h>
-#include <p101_posix/sys/p101_utsname.h>
+#include <p101_filesystem/filesystem.h>
+#include <p101_host/host.h>
+#include <p101_process/process.h>
+#include <p101_time/time.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/utsname.h>
@@ -23,10 +23,12 @@ void p101_observe_make_report_paths(const struct p101_env *env, struct p101_erro
     P101_TRACE_SCOPE(env);
     pid = p101_getpid(env);
     p101_clock_gettime(env, err, CLOCK_REALTIME, &now);
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- clock failure is an OS-level defensive path
+    // GCOVR_EXCL_BR_START: clock failure is an OS-level defensive path.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
     seconds = now.tv_sec;
     p101_snprintf(env, err, paths->run_id, sizeof(paths->run_id), "p101-%ld-%jd-%09ld", pid, seconds, now.tv_nsec);
 
@@ -75,7 +77,14 @@ void p101_observe_join_path(const struct p101_env *env, struct p101_error *err, 
     P101_TRACE_SCOPE(env);
     written = p101_snprintf(env, err, destination, PATH_LEN, "%s/%s", dir, name);
 
-    if(written < 0 || written >= PATH_LEN)    // GCOVR_EXCL_BR_LINE -- snprintf negative result is wrapper-level failure
+    // GCOVR_EXCL_START: a negative result is a wrapper-level failure;
+    // truncation remains a directly tested admitted input.
+    if(written < 0)
+    {
+        P101_ERROR_RAISE_USER(err, "Could not format a report path.", ERR_USAGE);
+    }
+    // GCOVR_EXCL_STOP
+    else if(written >= PATH_LEN)
     {
         P101_ERROR_RAISE_USER(err, "A report path is too long.", ERR_USAGE);
     }
@@ -181,16 +190,20 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     p101_fputs(env, err, "event_schema=" P101_TOOL_EVENT_SCHEMA_NAME "\n", stream);
     p101_fprintf(env, err, stream, "event_log_version=%d\n", P101_TOOL_EVENT_LOG_VERSION);
     p101_fputs(env, err, "event_timestamp_fields=sequence,monotonic_ns,wall_unix_ns\n", stream);
-    if(have_time)    // GCOVR_EXCL_BR_LINE -- false only after the excluded OS fallback
+    // GCOVR_EXCL_BR_START: false only after the excluded OS fallback.
+    if(have_time)
     {
         p101_fprintf(env, err, stream, "generated_at_unix=%jd\n", generated_at_value);
     }
-    if(have_host == 0)    // GCOVR_EXCL_BR_LINE -- false only after the excluded OS fallback
+    // GCOVR_EXCL_BR_STOP
+    // GCOVR_EXCL_BR_START: false only after the excluded OS fallback.
+    if(have_host == 0)
     {
         p101_fprintf(env, err, stream, "host_sysname=%s\n", host.sysname);
         p101_fprintf(env, err, stream, "host_release=%s\n", host.release);
         p101_fprintf(env, err, stream, "host_machine=%s\n", host.machine);
     }
+    // GCOVR_EXCL_BR_STOP
     p101_fprintf(env, err, stream, "report_dir=%s\n", paths->dir);
     p101_fprintf(env, err, stream, "resource_tracker=%s\n", args->resource_tracker);
     p101_fprintf(env, err, stream, "p101_sync_check=%s\n", args->p101_sync_check);

@@ -11,9 +11,9 @@
 #include <p101_c/p101_string.h>
 #include <p101_env/env.h>
 #include <p101_error/error.h>
-#include <p101_posix/p101_stdio.h>
-#include <p101_posix/p101_stdlib.h>
-#include <p101_posix/p101_unistd.h>
+#include <p101_filesystem/filesystem.h>
+#include <p101_io/io.h>
+#include <p101_process/process.h>
 #include <sys/wait.h>
 
 static struct p101_error *more_error;
@@ -25,8 +25,12 @@ void p101_observe_test_set_fault_environment(const struct p101_env *env, struct 
 void p101_observe_test_setenv_if_present(const struct p101_env *env, struct p101_error *err, const char *source_name, const char *target_name);
 void p101_observe_test_clear_observe_environment(const struct p101_env *env, struct p101_error *err);
 void p101_observe_test_clear_helper_environment(const struct p101_env *env, struct p101_error *err);
+void p101_observe_test_setup_observed_child(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths);
+void p101_observe_test_setup_helper_child(const struct p101_env *env, struct p101_error *err);
 bool p101_observe_test_tool_statuses_are_acceptable(const struct observe_result *result);
 bool p101_observe_test_result_has_findings(const struct observe_result *result);
+int p101_observe_test_finish_capture_only(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result);
+int p101_observe_test_select_analysis_exit_status(const struct observe_result *result);
 
 static void reset_error(void)
 {
@@ -52,6 +56,7 @@ static void test_status_variants(void)
     p101_observe_print_status(more_env, more_error, stream, "exit", 2 << 8);
     p101_observe_print_status(more_env, more_error, stream, "signal", SIGTERM);
     p101_observe_print_status(more_env, more_error, stream, "raw", 0x7f);
+    p101_observe_print_status(more_env, more_error, stream, "continued", 4991);
     p101_fclose(more_env, more_error, stream);
 }
 
@@ -168,6 +173,10 @@ static void test_path_and_report_writers(void)
     result.resource_status = 0x7f;
     p101_observe_write_receipt_file(more_env, more_error, &paths, &result);
     reset_error();
+    result.command_status  = 4991;
+    result.resource_status = 0;
+    p101_observe_write_receipt_file(more_env, more_error, &paths, &result);
+    reset_error();
 
     args.report_dir = NULL;
     p101_observe_make_report_paths(more_env, more_error, &args, &paths);
@@ -217,6 +226,8 @@ static void test_runner_environment_helpers(void)
     args.log_arguments = true;
     args.log_results   = true;
     p101_observe_test_set_observed_environment(more_env, more_error, &args, &paths);
+    p101_observe_test_setup_observed_child(more_env, more_error, &args, &paths);
+    p101_observe_test_setup_helper_child(more_env, more_error);
 
     p101_setenv(more_env, more_error, CHILD_FAULT_CALL_ENV, "3", 1);
     p101_setenv(more_env, more_error, CHILD_FAULT_ERRNO_ENV, "5", 1);
@@ -256,6 +267,8 @@ static void test_runner_environment_helpers(void)
 
 static void test_runner_result_predicates(void)
 {
+    struct arguments      args;
+    struct report_paths   paths;
     struct observe_result result;
     int                  *tool_statuses[] = {&result.resource_status,
                                              &result.resource_json_status,
@@ -278,6 +291,8 @@ static void test_runner_result_predicates(void)
                                              &result.report_mermaid_status};
 
     p101_memset(more_env, &result, 0, sizeof(result));
+    p101_memset(more_env, &args, 0, sizeof(args));
+    p101_memset(more_env, &paths, 0, sizeof(paths));
     TEST_ASSERT_TRUE(p101_observe_test_tool_statuses_are_acceptable(&result));
     for(size_t index = 0U; index < sizeof(tool_statuses) / sizeof(tool_statuses[0]); index++)
     {
@@ -297,6 +312,25 @@ static void test_runner_result_predicates(void)
         TEST_ASSERT_TRUE(p101_observe_test_result_has_findings(&result));
         *all_statuses[index] = 0;
     }
+
+    result.resources.parsed = false;
+    TEST_ASSERT_EQUAL_INT(EXIT_TROUBLE, p101_observe_test_select_analysis_exit_status(&result));
+    result.resources.parsed = true;
+    TEST_ASSERT_EQUAL_INT(EXIT_TROUBLE, p101_observe_test_select_analysis_exit_status(&result));
+    result.resources.log_complete = true;
+    TEST_ASSERT_EQUAL_INT(EXIT_SUCCESS, p101_observe_test_select_analysis_exit_status(&result));
+    result.command_status = 1 << 8;
+    TEST_ASSERT_EQUAL_INT(EXIT_FINDINGS, p101_observe_test_select_analysis_exit_status(&result));
+    result.command_status  = 0;
+    result.resource_status = 2 << 8;
+    TEST_ASSERT_EQUAL_INT(EXIT_TROUBLE, p101_observe_test_select_analysis_exit_status(&result));
+    result.resource_status = 0;
+
+    p101_strncpy(more_env, paths.summary, "/missing/p101-observe-summary", sizeof(paths.summary) - 1U);
+    p101_strncpy(more_env, paths.receipt, "/missing/p101-observe-receipt", sizeof(paths.receipt) - 1U);
+    TEST_ASSERT_EQUAL_INT(EXIT_TROUBLE, p101_observe_test_finish_capture_only(more_env, more_error, &args, &paths, &result));
+    TEST_ASSERT_TRUE(p101_error_has_error(more_error));
+    reset_error();
 }
 
 void p101_observe_run_more_tests(void)

@@ -1,7 +1,7 @@
 #include "child_execution.h"
 #include "constants.h"
 #include <p101_c/p101_stdlib.h>
-#include <p101_posix/p101_stdlib.h>
+#include <p101_process/process.h>
 #include <p101_util/tool_run.h>
 
 struct observed_child_context
@@ -47,6 +47,20 @@ void p101_observe_test_clear_observe_environment(const struct p101_env *env, str
 void p101_observe_test_clear_helper_environment(const struct p101_env *env, struct p101_error *err)
 {
     clear_helper_environment(env, err);
+}
+
+void p101_observe_test_setup_observed_child(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths)
+{
+    struct observed_child_context context;
+
+    context.args  = args;
+    context.paths = paths;
+    setup_observed_child(env, err, &context);
+}
+
+void p101_observe_test_setup_helper_child(const struct p101_env *env, struct p101_error *err)
+{
+    setup_helper_child(env, err, NULL);
 }
 #endif
 

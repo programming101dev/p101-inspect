@@ -11,6 +11,8 @@
 #include <stdlib.h>
 static bool tool_statuses_are_acceptable(const struct observe_result *result);
 static bool result_has_findings(const struct observe_result *result);
+static int  finish_capture_only(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result);
+static int  select_analysis_exit_status(const struct observe_result *result);
 
 #ifdef P101_OBSERVE_TESTING
 bool p101_observe_test_tool_statuses_are_acceptable(const struct observe_result *result)
@@ -21,6 +23,16 @@ bool p101_observe_test_tool_statuses_are_acceptable(const struct observe_result 
 bool p101_observe_test_result_has_findings(const struct observe_result *result)
 {
     return result_has_findings(result);
+}
+
+int p101_observe_test_finish_capture_only(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result)
+{
+    return finish_capture_only(env, err, args, paths, result);
+}
+
+int p101_observe_test_select_analysis_exit_status(const struct observe_result *result)
+{
+    return select_analysis_exit_status(result);
 }
 #endif
 
@@ -73,6 +85,35 @@ static bool result_has_findings(const struct observe_result *result)
     return false;
 }
 
+static int finish_capture_only(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result)
+{
+    p101_observe_write_summary_file(env, err, args, paths, result);
+    p101_observe_write_receipt_file(env, err, paths, result);
+    if(p101_error_has_error(err))
+    {
+        return EXIT_TROUBLE;
+    }
+    p101_printf(env, err, "p101-observe: captured run in %s\n", paths->dir);
+    return p101_observe_status_is_success(result->command_status) ? EXIT_SUCCESS : EXIT_FINDINGS;
+}
+
+static int select_analysis_exit_status(const struct observe_result *result)
+{
+    if(!tool_statuses_are_acceptable(result))
+    {
+        return EXIT_TROUBLE;
+    }
+    if(!result->resources.parsed)
+    {
+        return EXIT_TROUBLE;
+    }
+    if(!result->resources.log_complete)
+    {
+        return EXIT_TROUBLE;
+    }
+    return result_has_findings(result) ? EXIT_FINDINGS : EXIT_SUCCESS;
+}
+
 int p101_observe_run(const struct p101_env *env, struct p101_error *err, const struct arguments *args)
 {
     struct report_paths   paths;
@@ -100,33 +141,41 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
 
     p101_observe_make_report_paths(env, err, args, &paths);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     p101_observe_create_report_dir(env, err, paths.dir);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     p101_observe_write_command_file(env, err, paths.command, args->command_argv);
     p101_observe_write_manifest_file(env, err, paths.manifest, args, &paths);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     p101_observe_create_empty_file(env, err, paths.resource_log);
     p101_observe_create_empty_file(env, err, paths.call_log);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     p101_strncpy(env, resource_tracker_path, args->resource_tracker, sizeof(resource_tracker_path) - 1U);
     resource_tracker_path[sizeof(resource_tracker_path) - 1U] = '\0';
@@ -139,28 +188,16 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
 
     result.command_status = p101_observe_run_observed_command(env, err, args, &paths);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     if(args->capture_only)
     {
-        p101_observe_write_summary_file(env, err, args, &paths, &result);
-        p101_observe_write_receipt_file(env, err, &paths, &result);
-        if(p101_error_has_error(err))
-        {
-            goto done;
-        }
-        p101_printf(env, err, "p101-observe: captured run in %s\n", paths.dir);
-        if(p101_observe_status_is_success(result.command_status))
-        {
-            ret_val = EXIT_SUCCESS;
-        }
-        else
-        {
-            ret_val = EXIT_FINDINGS;
-        }
+        ret_val = finish_capture_only(env, err, args, &paths, &result);
         goto done;
     }
 
@@ -170,10 +207,12 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     concurrency_argv[2]       = NULL;
     result.concurrency_status = p101_observe_run_tool_capture(env, err, concurrency_argv, paths.concurrency_report, paths.concurrency_stderr);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     concurrency_json_argv[0]       = concurrency_path;
     concurrency_json_argv[1]       = json_option;
@@ -181,20 +220,24 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     concurrency_json_argv[3]       = NULL;
     result.concurrency_json_status = p101_observe_run_tool_capture(env, err, concurrency_json_argv, paths.concurrency_json, paths.concurrency_stderr);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     resource_argv[0]       = resource_tracker_path;
     resource_argv[1]       = paths.resource_log;
     resource_argv[2]       = NULL;
     result.resource_status = p101_observe_run_tool_capture(env, err, resource_argv, paths.resource_report, paths.resource_stderr);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     resource_json_argv[0]       = resource_tracker_path;
     resource_json_argv[1]       = json_option;
@@ -202,27 +245,33 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     resource_json_argv[3]       = NULL;
     result.resource_json_status = p101_observe_run_tool_capture(env, err, resource_json_argv, paths.resource_json, paths.resource_stderr);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     p101_observe_read_resource_json(env, err, paths.resource_json, &result.resources);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     trace_tree_argv[0]       = trace_path;
     trace_tree_argv[1]       = paths.call_log;
     trace_tree_argv[2]       = NULL;
     result.trace_tree_status = p101_observe_run_tool_capture(env, err, trace_tree_argv, paths.trace_tree, paths.trace_stderr);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     trace_summary_argv[0]       = trace_path;
     trace_summary_argv[1]       = summary_option;
@@ -230,10 +279,12 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     trace_summary_argv[3]       = NULL;
     result.trace_summary_status = p101_observe_run_tool_capture(env, err, trace_summary_argv, paths.trace_summary, paths.trace_stderr);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     report_argv[0]       = report_path;
     report_argv[1]       = bundle_option;
@@ -242,54 +293,44 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     report_argv[4]       = NULL;
     result.report_status = p101_observe_run_tool_capture(env, err, report_argv, paths.report_driver_output, paths.report_stderr);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     result.report_json_status    = result.report_status;
     result.report_mermaid_status = result.report_status;
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     p101_observe_write_summary_file(env, err, args, &paths, &result);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     p101_observe_write_receipt_file(env, err, &paths, &result);
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- defensive propagation after wrapper failure
+    // GCOVR_EXCL_BR_START: defensive propagation after wrapper failure.
+    if(p101_error_has_error(err))
     {
         goto done;    // GCOVR_EXCL_LINE
     }
+    // GCOVR_EXCL_BR_STOP
 
     p101_printf(env, err, "p101-observe: wrote report to %s\n", paths.dir);
 
-    if(!tool_statuses_are_acceptable(&result))
-    {
-        ret_val = EXIT_TROUBLE;
-        goto done;
-    }
-
-    if(!result.resources.parsed || !result.resources.log_complete)
-    {
-        ret_val = EXIT_TROUBLE;
-        goto done;
-    }
-
-    if(result_has_findings(&result))
-    {
-        ret_val = EXIT_FINDINGS;
-        goto done;
-    }
-
-    ret_val = EXIT_SUCCESS;
+    ret_val = select_analysis_exit_status(&result);
 
 done:
     return ret_val;
