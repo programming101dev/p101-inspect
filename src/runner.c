@@ -94,7 +94,11 @@ static int finish_capture_only(const struct p101_env *env, struct p101_error *er
         return EXIT_TROUBLE;
     }
     p101_printf(env, err, "p101-observe: captured run in %s\n", paths->dir);
-    return p101_observe_status_is_success(result->command_status) ? EXIT_SUCCESS : EXIT_FINDINGS;
+    if(p101_observe_status_is_success(result->command_status))
+    {
+        return EXIT_SUCCESS;
+    }
+    return EXIT_FINDINGS;
 }
 
 static int select_analysis_exit_status(const struct observe_result *result)
@@ -111,7 +115,11 @@ static int select_analysis_exit_status(const struct observe_result *result)
     {
         return EXIT_TROUBLE;
     }
-    return result_has_findings(result) ? EXIT_FINDINGS : EXIT_SUCCESS;
+    if(result_has_findings(result))
+    {
+        return EXIT_FINDINGS;
+    }
+    return EXIT_SUCCESS;
 }
 
 int p101_observe_run(const struct p101_env *env, struct p101_error *err, const struct arguments *args)
