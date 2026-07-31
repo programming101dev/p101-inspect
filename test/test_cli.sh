@@ -48,6 +48,7 @@ if [ "${1:-}" = "-b" ]; then
   : >"$2/correlated-report.txt"
   : >"$2/correlated-report.json"
   : >"$2/resource-lifetimes.md"
+  printf '{"schema":"p101-run-model-v1","event_schema":"p101-tool-event-format-v4","nodes":[],"edges":[]}\n' >"$2/run-model.json"
 fi
 exit "${P101_TEST_HELPER_STATUS:-0}"
 HELPER

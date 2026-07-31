@@ -88,6 +88,7 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
         p101_fprintf(env, err, stream, "  correlated_report: %s\n", paths->correlated_report);
         p101_fprintf(env, err, stream, "  correlated_json: %s\n", paths->correlated_json);
         p101_fprintf(env, err, stream, "  resource_lifetimes_graph: %s\n", paths->correlated_mermaid);
+        p101_fprintf(env, err, stream, "  run_model: %s\n", paths->run_model);
         p101_fprintf(env, err, stream, "  report_driver_output: %s\n", paths->report_driver_output);
         p101_fprintf(env, err, stream, "  report_tools_stderr: %s\n", paths->report_stderr);
     }
@@ -163,6 +164,7 @@ void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_err
         write_artifact_fingerprint(env, err, stream, "correlated_report", paths->correlated_report);
         write_artifact_fingerprint(env, err, stream, "correlated_json", paths->correlated_json);
         write_artifact_fingerprint(env, err, stream, "resource_lifetimes_graph", paths->correlated_mermaid);
+        write_artifact_fingerprint(env, err, stream, "run_model", paths->run_model);
         write_artifact_fingerprint(env, err, stream, "report_driver_output", paths->report_driver_output);
         write_artifact_fingerprint(env, err, stream, "report_tools_stderr", paths->report_stderr);
     }

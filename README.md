@@ -1,20 +1,29 @@
 # p101-observe
 
-`p101-observe` is the front door for the Programming 101 runtime tools. It runs
-one command with p101 resource and call logging enabled, captures the command's
-output, runs `p101-resource-tracker`, `p101-sync-check`, `p101-trace`, and
-`p101-report`, and
-leaves a small report directory behind.
+`p101-observe` is the evidence-capture component for the Programming 101
+runtime tools. It runs one command with p101 resource and call logging enabled
+and captures the command output and immutable event streams.
 
 It does not replace the lower-level tools. It bundles their ordinary workflow so
 students do not have to remember the environment variables and follow-up
 commands.
 
-Use `-C` for capture-only operation. It records the command, stdout, stderr,
+The `p101 observe` dispatcher always selects `-C`. It records the command, stdout, stderr,
 resource and call streams, manifest, and receipt without running analyzers.
-The resulting immutable directory can be analyzed later with `p101-report` or
-the specialized compatibility tools. This is the explicit capture/analysis
-boundary; ordinary operation still performs both for convenience.
+The resulting immutable directory can be analyzed later with `p101 analyze`:
+
+    p101 observe -o run-capture -- ./my-program config.txt
+    p101 analyze -o run-analysis run-capture
+
+The replay command verifies the capture receipt and artifact fingerprints
+before and after analysis, builds one shared model, runs the policy modules,
+and writes a separate analysis receipt. It refuses incomplete or modified captures unless
+the caller explicitly uses `--force`, which is permanently recorded in the
+analysis receipt. `p101 run` composes capture and analysis for convenience.
+
+Direct `p101-observe` invocation without `-C` is retained as a compatibility
+and differential-testing path while the standalone analyzers are retired from
+the ordinary workflow.
 
 ## Usage
 
