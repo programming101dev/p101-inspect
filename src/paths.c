@@ -9,6 +9,7 @@
 #include <p101_host/host.h>
 #include <p101_process/process.h>
 #include <p101_time/time.h>
+#include <p101_tool_event/event.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/utsname.h>

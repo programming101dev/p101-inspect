@@ -3,6 +3,7 @@
 #include "status.h"
 #include <inttypes.h>
 #include <p101_c/p101_stdio.h>
+#include <p101_tool_event/event.h>
 #include <p101_tool_event/receipt.h>
 #include <stdio.h>
 #include <sys/wait.h>
