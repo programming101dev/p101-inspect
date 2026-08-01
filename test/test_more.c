@@ -218,7 +218,7 @@ static void test_runner_environment_helpers(void)
     p101_observe_test_setenv_if_present(more_env, more_error, "P101_TEST_SOURCE", "P101_TEST_TARGET");
     p101_setenv(more_env, more_error, "P101_TEST_SOURCE", "value", 1);
     p101_observe_test_setenv_if_present(more_env, more_error, "P101_TEST_SOURCE", "P101_TEST_TARGET");
-    TEST_ASSERT_EQUAL_STRING("value", p101_getenv(more_env, "P101_TEST_TARGET"));
+    TEST_ASSERT_EQUAL_STRING("value", p101_getenv(more_env, more_error, "P101_TEST_TARGET"));
     p101_unsetenv(more_env, more_error, "P101_TEST_SOURCE");
     p101_unsetenv(more_env, more_error, "P101_TEST_TARGET");
 

@@ -143,7 +143,7 @@ static void setenv_if_present(const struct p101_env *env, struct p101_error *err
     const char *value;
 
     P101_TRACE_SCOPE(env);
-    value = p101_getenv(env, source_name);
+    value = p101_getenv(env, err, source_name);
 
     if(value != NULL && value[0] != '\0')
     {
