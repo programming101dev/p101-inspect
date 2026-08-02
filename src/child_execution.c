@@ -113,6 +113,7 @@ static void setup_helper_child(const struct p101_env *env, struct p101_error *er
 static void set_observed_environment(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths)
 {
     P101_TRACE_SCOPE(env);
+    p101_setenv(env, err, P101_ENV_EVENT_RUN_ID_ENV, paths->run_id, 1);
     p101_setenv(env, err, RESOURCE_LOG_ENV, paths->resource_log, 1);
     p101_setenv(env, err, CALL_LOG_ENV, paths->call_log, 1);
     if(args->log_arguments)
@@ -154,6 +155,7 @@ static void setenv_if_present(const struct p101_env *env, struct p101_error *err
 static void clear_observe_environment(const struct p101_env *env, struct p101_error *err)
 {
     P101_TRACE_SCOPE(env);
+    p101_unsetenv(env, err, P101_ENV_EVENT_RUN_ID_ENV);
     p101_unsetenv(env, err, RESOURCE_LOG_ENV);
     p101_unsetenv(env, err, CALL_LOG_ENV);
     p101_unsetenv(env, err, CALL_LOG_ARGS_ENV);

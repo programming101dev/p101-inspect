@@ -210,6 +210,7 @@ static void test_runner_environment_helpers(void)
 
     p101_memset(more_env, &args, 0, sizeof(args));
     p101_memset(more_env, &paths, 0, sizeof(paths));
+    p101_strncpy(more_env, paths.run_id, "observe-test-run", sizeof(paths.run_id) - 1U);
     p101_strncpy(more_env, paths.resource_log, "resources", sizeof(paths.resource_log) - 1U);
     p101_strncpy(more_env, paths.call_log, "calls", sizeof(paths.call_log) - 1U);
 
@@ -223,6 +224,7 @@ static void test_runner_environment_helpers(void)
     p101_unsetenv(more_env, more_error, "P101_TEST_TARGET");
 
     p101_observe_test_set_observed_environment(more_env, more_error, &args, &paths);
+    TEST_ASSERT_EQUAL_STRING("observe-test-run", p101_getenv(more_env, more_error, P101_ENV_EVENT_RUN_ID_ENV));
     args.log_arguments = true;
     args.log_results   = true;
     p101_observe_test_set_observed_environment(more_env, more_error, &args, &paths);
