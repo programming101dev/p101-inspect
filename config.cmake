@@ -35,7 +35,6 @@ set(main_SOURCES
     src/main.c
         src/paths.c
         src/report.c
-        src/resource.c
         src/runner.c
         src/status.c
 )
@@ -47,7 +46,6 @@ set(main_HEADERS
         include/errors.h
         include/paths.h
         include/report.h
-        include/resource.h
         include/runner.h
         include/status.h
 )

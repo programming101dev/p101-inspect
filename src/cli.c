@@ -12,10 +12,6 @@ void p101_observe_arguments_init(const struct p101_env *env, struct arguments *a
 {
     P101_TRACE_SCOPE(env);
     p101_memset(env, args, 0, sizeof(*args));
-    args->resource_tracker = DEFAULT_TRACKER_PATH;
-    args->p101_sync_check  = DEFAULT_CONCURRENCY_PATH;
-    args->p101_trace       = DEFAULT_TRACE_PATH;
-    args->p101_report      = DEFAULT_REPORT_PATH;
 }
 
 void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error *err, int argc, char *argv[], struct arguments *args)
@@ -30,7 +26,7 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
         p101_observe_usage(env, err, argv[0], EXIT_SUCCESS, NULL);
     }
 
-    while((opt = p101_getopt(env, argc, argv, ":hvCARo:r:d:t:p:")) != -1 && p101_error_has_no_error(err))
+    while((opt = p101_getopt(env, argc, argv, ":hvARo:")) != -1 && p101_error_has_no_error(err))
     {
         switch(opt)    // GCOVR_EXCL_BR_LINE -- default is a defensive p101_getopt contract check
         {
@@ -41,11 +37,6 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
             case 'v':
             {
                 args->verbose = true;
-                break;
-            }
-            case 'C':
-            {
-                args->capture_only = true;
                 break;
             }
             case 'A':
@@ -61,26 +52,6 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
             case 'o':
             {
                 args->report_dir = optarg;
-                break;
-            }
-            case 'r':
-            {
-                args->resource_tracker = optarg;
-                break;
-            }
-            case 'd':
-            {
-                args->p101_sync_check = optarg;
-                break;
-            }
-            case 't':
-            {
-                args->p101_trace = optarg;
-                break;
-            }
-            case 'p':
-            {
-                args->p101_report = optarg;
                 break;
             }
             case ':':
@@ -141,30 +112,6 @@ void p101_observe_check_arguments(const struct p101_env *env, struct p101_error 
         goto done;
     }
 
-    if(!args->capture_only && (args->resource_tracker == NULL || args->resource_tracker[0] == '\0'))
-    {
-        P101_ERROR_RAISE_USER(err, "The p101-resource-tracker path must not be empty.", ERR_USAGE);
-        goto done;
-    }
-
-    if(!args->capture_only && (args->p101_trace == NULL || args->p101_trace[0] == '\0'))
-    {
-        P101_ERROR_RAISE_USER(err, "The p101-trace path must not be empty.", ERR_USAGE);
-        goto done;
-    }
-
-    if(!args->capture_only && (args->p101_sync_check == NULL || args->p101_sync_check[0] == '\0'))
-    {
-        P101_ERROR_RAISE_USER(err, "The p101-sync-check path must not be empty.", ERR_USAGE);
-        goto done;
-    }
-
-    if(!args->capture_only && (args->p101_report == NULL || args->p101_report[0] == '\0'))
-    {
-        P101_ERROR_RAISE_USER(err, "The p101-report path must not be empty.", ERR_USAGE);
-        goto done;
-    }
-
 done:
     return;
 }
@@ -179,20 +126,15 @@ _Noreturn void p101_observe_usage(const struct p101_env *env, struct p101_error 
         p101_fprintf(env, err, stderr, "%s\n\n", message);
     }
 
-    p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-C] [-A] [-R] [-o <report-dir>] [-r <p101-resource-tracker>] [-d <p101-sync-check>] [-t <p101-trace>] [-p <p101-report>] -- <command> [args...]\n", program_name);
+    p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-A] [-R] [-o <capture-dir>] -- <command> [args...]\n", program_name);
     p101_fputs(env, err, "Options:\n", stderr);
     p101_fputs(env, err, "  -h                       Display this help message and exit\n", stderr);
     p101_fputs(env, err, "  -v                       Enable verbose p101 tracing in p101-observe\n", stderr);
-    p101_fputs(env, err, "  -C                       Capture only; defer all offline analysis\n", stderr);
     p101_fputs(env, err, "  -A                       Opt in to call-argument values (may contain sensitive data)\n", stderr);
     p101_fputs(env, err, "  -R                       Opt in to call-result values (may contain sensitive data)\n", stderr);
-    p101_fputs(env, err, "  -o <report-dir>          Directory to create for the report\n", stderr);
+    p101_fputs(env, err, "  -o <capture-dir>         Directory to create for captured evidence\n", stderr);
     p101_fputs(env, err, "                           (default: p101-observe-<pid>)\n", stderr);
-    p101_fputs(env, err, "  -r <p101-resource-tracker>    p101-resource-tracker executable (default: PATH lookup)\n", stderr);
-    p101_fputs(env, err, "  -d <p101-sync-check>    p101-sync-check executable (default: PATH lookup)\n", stderr);
-    p101_fputs(env, err, "  -t <p101-trace>          p101-trace executable (default: PATH lookup)\n", stderr);
-    p101_fputs(env, err, "  -p <p101-report>         p101-report executable (default: PATH lookup)\n", stderr);
-    p101_fputs(env, err, "\nThe child should use p101_env_create() from an updated lib_env build.\n", stderr);
+    p101_fputs(env, err, "\nUse `p101 run` to capture and analyze in one command.\n", stderr);
 #else
     (void)message;
     (void)program_name;

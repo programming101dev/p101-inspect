@@ -49,6 +49,6 @@ Then do the same state-machine exercise for allocations:
 ## Instructor note
 
 This assignment teaches the same state-machine reasoning used by
-`p101-resource-tracker`, without requiring students to understand the full
+the canonical `p101 analyze` resource policy, without requiring students to understand the full
 implementation first. The point is not to write the fastest analyzer; the point
 is to make ownership visible.

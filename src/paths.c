@@ -48,21 +48,6 @@ void p101_observe_make_report_paths(const struct p101_env *env, struct p101_erro
     p101_observe_join_path(env, err, paths->stderr_text, paths->dir, "stderr.txt");
     p101_observe_join_path(env, err, paths->resource_log, paths->dir, "resources.log");
     p101_observe_join_path(env, err, paths->call_log, paths->dir, "calls.log");
-    p101_observe_join_path(env, err, paths->resource_report, paths->dir, "resource-report.txt");
-    p101_observe_join_path(env, err, paths->resource_json, paths->dir, "resource-report.json");
-    p101_observe_join_path(env, err, paths->resource_stderr, paths->dir, "resource-tools.stderr.txt");
-    p101_observe_join_path(env, err, paths->concurrency_report, paths->dir, "concurrency-report.txt");
-    p101_observe_join_path(env, err, paths->concurrency_json, paths->dir, "concurrency-report.json");
-    p101_observe_join_path(env, err, paths->concurrency_stderr, paths->dir, "concurrency-tools.stderr.txt");
-    p101_observe_join_path(env, err, paths->trace_tree, paths->dir, "trace-tree.txt");
-    p101_observe_join_path(env, err, paths->trace_summary, paths->dir, "trace-summary.txt");
-    p101_observe_join_path(env, err, paths->trace_stderr, paths->dir, "trace-tools.stderr.txt");
-    p101_observe_join_path(env, err, paths->correlated_report, paths->dir, "correlated-report.txt");
-    p101_observe_join_path(env, err, paths->correlated_json, paths->dir, "correlated-report.json");
-    p101_observe_join_path(env, err, paths->correlated_mermaid, paths->dir, "resource-lifetimes.md");
-    p101_observe_join_path(env, err, paths->run_model, paths->dir, "run-model.json");
-    p101_observe_join_path(env, err, paths->report_driver_output, paths->dir, "report-driver.stdout.txt");
-    p101_observe_join_path(env, err, paths->report_stderr, paths->dir, "report-tools.stderr.txt");
     p101_observe_join_path(env, err, paths->summary, paths->dir, "summary.txt");
     p101_observe_join_path(env, err, paths->manifest, paths->dir, "manifest.txt");
     p101_observe_join_path(env, err, paths->receipt, paths->dir, "receipt.txt");
@@ -206,10 +191,6 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     }
     // GCOVR_EXCL_BR_STOP
     p101_fprintf(env, err, stream, "report_dir=%s\n", paths->dir);
-    p101_fprintf(env, err, stream, "resource_tracker=%s\n", args->resource_tracker);
-    p101_fprintf(env, err, stream, "p101_sync_check=%s\n", args->p101_sync_check);
-    p101_fprintf(env, err, stream, "p101_trace=%s\n", args->p101_trace);
-    p101_fprintf(env, err, stream, "p101_report=%s\n", args->p101_report);
     p101_fprintf(env, err, stream, "call_arguments=%s\n", argument_logging);
     p101_fprintf(env, err, stream, "call_results=%s\n", result_logging);
     p101_fprintf(env, err, stream, "resource_log=%s\n", paths->resource_log);

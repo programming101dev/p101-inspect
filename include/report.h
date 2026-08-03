@@ -3,24 +3,12 @@
 
 #include "arguments.h"
 #include "paths.h"
-#include "resource.h"
 #include <p101_env/env.h>
 #include <p101_error/error.h>
 
 struct observe_result
 {
-    bool                    analysis_ran;
-    int                     command_status;
-    int                     resource_status;
-    int                     resource_json_status;
-    int                     concurrency_status;
-    int                     concurrency_json_status;
-    int                     trace_tree_status;
-    int                     trace_summary_status;
-    int                     report_status;
-    int                     report_json_status;
-    int                     report_mermaid_status;
-    struct resource_summary resources;
+    int command_status;
 };
 
 void p101_observe_write_summary_file(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result);

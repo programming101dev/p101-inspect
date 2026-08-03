@@ -2,10 +2,6 @@
 #define P101_OBSERVE_CONSTANTS_H
 
 #define DEFAULT_REPORT_PREFIX "p101-observe"
-#define DEFAULT_TRACKER_PATH "p101-resource-tracker"
-#define DEFAULT_CONCURRENCY_PATH "p101-sync-check"
-#define DEFAULT_TRACE_PATH "p101-trace"
-#define DEFAULT_REPORT_PATH "p101-report"
 #define RESOURCE_LOG_ENV "P101_RESOURCE_LOG"
 #define CALL_LOG_ENV "P101_CALL_LOG"
 #define CALL_LOG_ARGS_ENV "P101_CALL_LOG_ARGS"
@@ -29,7 +25,6 @@ enum
     MSG_LEN          = 256,
     RUN_ID_LEN       = 128,
     READ_BUF_LEN     = 4096,
-    JSON_BUF_LEN     = 65536,
     REPORT_TOOL_ARGV_LEN = 5,
     EXEC_FAILURE     = 127,
     REPORT_DIR_MODE  = 0755,

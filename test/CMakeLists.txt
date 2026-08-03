@@ -57,7 +57,6 @@ p101_add_test(test_arguments
         ../src/child_execution.c
         ../src/paths.c
     ../src/report.c
-    ../src/resource.c
     ../src/runner.c
     ../src/status.c
 )
@@ -69,7 +68,6 @@ add_executable(p101_observe_coverage_cli
         ../src/main.c
     ../src/paths.c
     ../src/report.c
-    ../src/resource.c
     ../src/runner.c
     ../src/status.c
 )

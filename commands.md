@@ -7,19 +7,16 @@ Run `./change-compiler.sh -c <compiler>` once before building.
 
 | Command | What it does |
 | --- | --- |
-| `p101-observe -- ./prog` | Run `./prog`, collect p101 resource/call logs, and build a report directory |
-| `p101-observe -o report -- ./prog arg` | Write the report to `report/` |
-| `p101-observe -r ../p101-resource-tracker/build-clang/p101-resource-tracker -- ./prog` | Use an in-tree p101-resource-tracker build |
-| `p101-observe -t ../p101-trace/build-clang/p101-trace -- ./prog` | Use an in-tree p101-trace build |
-| `p101-observe -p ../p101-report/build-clang/p101-report -- ./prog` | Use an in-tree p101-report build |
+| `p101-observe -- ./prog` | Run `./prog` and capture p101 resource/call logs |
+| `p101-observe -o capture -- ./prog arg` | Write immutable evidence to `capture/` |
+| `p101 run -o analysis -- ./prog` | Capture and analyze through the canonical facade |
 | `p101-observe -v -- ./prog` | Verbose: trace `p101-observe` itself |
 
-Each report directory includes `manifest.txt` for reproducibility,
+Each capture directory includes `manifest.txt` for reproducibility,
 `receipt.txt` for bounded run identity, status, and artifact fingerprints, and
-`resource-lifetimes.md` for the Mermaid lifetime graph.
+the two plain-text event streams.
 
-Exit status: `0` clean command and clean resources, `1` command failure or
-resource/correlation findings, `2` observe/report workflow trouble.
+Exit status: `0` clean command, `1` command failure, `2` capture trouble.
 
 ## Building and checking
 

@@ -2,7 +2,6 @@
 #include "constants.h"
 #include "errors.h"
 #include "paths.h"
-#include "resource.h"
 #include "unity.h"
 #include <p101_c/p101_string.h>
 #include <p101_env/env.h>
@@ -38,23 +37,19 @@ static void reset_getopt(void)
 #endif
 }
 
-static void test_parse_accepts_report_tools_and_command(void)
+static void test_parse_accepts_capture_directory_and_command(void)
 {
-    char            *argv[] = {"p101-observe", "-o", "report", "-r", "rt", "-d", "deadlocks", "-t", "trace", "-p", "reporter", "--", "prog", "arg", NULL};
+    char            *argv[] = {"p101-observe", "-o", "report", "--", "prog", "arg", NULL};
     struct arguments args;
 
     reset_getopt();
     p101_observe_arguments_init(env, &args);
 
-    p101_observe_parse_arguments(env, error, 14, argv, &args);
+    p101_observe_parse_arguments(env, error, 6, argv, &args);
     p101_observe_check_arguments(env, error, &args);
 
     TEST_ASSERT_FALSE(p101_error_has_error(error));
     TEST_ASSERT_EQUAL_STRING("report", args.report_dir);
-    TEST_ASSERT_EQUAL_STRING("rt", args.resource_tracker);
-    TEST_ASSERT_EQUAL_STRING("deadlocks", args.p101_sync_check);
-    TEST_ASSERT_EQUAL_STRING("trace", args.p101_trace);
-    TEST_ASSERT_EQUAL_STRING("reporter", args.p101_report);
     TEST_ASSERT_EQUAL_STRING("prog", args.command_argv[0]);
     TEST_ASSERT_EQUAL_STRING("arg", args.command_argv[1]);
 }
@@ -91,9 +86,9 @@ static void test_parse_rejects_missing_command(void)
     TEST_ASSERT_TRUE(p101_error_is_error(error, P101_ERROR_USER, ERR_USAGE));
 }
 
-static void test_parse_rejects_empty_reporter(void)
+static void test_parse_rejects_retired_analyzer_option(void)
 {
-    char            *argv[] = {"p101-observe", "-p", "", "--", "prog", NULL};
+    char            *argv[] = {"p101-observe", "-p", "retired", "--", "prog", NULL};
     struct arguments args;
 
     reset_getopt();
@@ -103,26 +98,6 @@ static void test_parse_rejects_empty_reporter(void)
     p101_observe_check_arguments(env, error, &args);
 
     TEST_ASSERT_TRUE(p101_error_is_error(error, P101_ERROR_USER, ERR_USAGE));
-}
-
-static void test_parse_resource_summary_accepts_tracker_json(void)
-{
-    const char json[] =
-        "{\"schema\":\"p101-resource-tracker-findings-v3\",\"records\":7,\"fd_leaks\":1,\"allocation_leaks\":2,\"bad_releases\":3,\"exec_inheritances\":0,\"generic_resource_leaks\":4,\"generic_bad_releases\":5,\"malformed\":0,\"bad_version\":0,\"refused\":0,\"log_health\":{\"complete\":true}}";
-    struct resource_summary summary;
-
-    p101_memset(env, &summary, 0, sizeof(summary));
-
-    TEST_ASSERT_TRUE(p101_observe_parse_resource_summary(env, json, &summary));
-    TEST_ASSERT_TRUE(summary.parsed);
-    TEST_ASSERT_EQUAL_UINT(7U, summary.records);
-    TEST_ASSERT_EQUAL_UINT(1U, summary.fd_leaks);
-    TEST_ASSERT_EQUAL_UINT(2U, summary.allocation_leaks);
-    TEST_ASSERT_EQUAL_UINT(3U, summary.bad_releases);
-    TEST_ASSERT_EQUAL_UINT(4U, summary.generic_resource_leaks);
-    TEST_ASSERT_EQUAL_UINT(5U, summary.generic_bad_releases);
-    TEST_ASSERT_TRUE(summary.log_complete);
-    TEST_ASSERT_EQUAL_UINT(15U, p101_observe_resource_finding_count(&summary));
 }
 
 static void test_join_path_rejects_long_paths(void)
@@ -154,19 +129,17 @@ static void test_make_report_paths_includes_manifest_and_graph(void)
     TEST_ASSERT_EQUAL_STRING_LEN("p101-", paths.run_id, 5U);
     TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/manifest.txt", paths.manifest);
     TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/receipt.txt", paths.receipt);
-    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/resource-lifetimes.md", paths.correlated_mermaid);
-    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/concurrency-report.txt", paths.concurrency_report);
-    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/concurrency-report.json", paths.concurrency_json);
+    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/resources.log", paths.resource_log);
+    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/calls.log", paths.call_log);
 }
 
 int main(void)
 {
     UNITY_BEGIN();
-    RUN_TEST(test_parse_accepts_report_tools_and_command);
+    RUN_TEST(test_parse_accepts_capture_directory_and_command);
     RUN_TEST(test_call_values_are_opt_in);
     RUN_TEST(test_parse_rejects_missing_command);
-    RUN_TEST(test_parse_rejects_empty_reporter);
-    RUN_TEST(test_parse_resource_summary_accepts_tracker_json);
+    RUN_TEST(test_parse_rejects_retired_analyzer_option);
     RUN_TEST(test_join_path_rejects_long_paths);
     RUN_TEST(test_make_report_paths_includes_manifest_and_graph);
     p101_observe_run_more_tests();
