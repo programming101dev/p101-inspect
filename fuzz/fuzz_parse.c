@@ -11,7 +11,6 @@
  *                                 input, not the end of the fuzz process.
  */
 #include "cli.h"
-#include "constants.h"
 #include <p101_c/p101_stdlib.h>
 #include <p101_c/p101_string.h>
 #include <setjmp.h>
@@ -96,10 +95,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     }
 #endif
 
-    p101_memset(env, &args, 0, sizeof(args));
-    args.resource_tracker = DEFAULT_TRACKER_PATH;
-    args.p101_trace       = DEFAULT_TRACE_PATH;
-    args.p101_report      = DEFAULT_REPORT_PATH;
+    p101_observe_arguments_init(env, &args);
 
     /* If parse_arguments takes the -h path, usage()->p101_exit()->longjmp lands
      * here with a non-zero return -- a normal outcome, not a crash. */
