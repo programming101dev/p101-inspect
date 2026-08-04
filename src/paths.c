@@ -51,6 +51,7 @@ void p101_observe_make_report_paths(const struct p101_env *env, struct p101_erro
     p101_observe_join_path(env, err, paths->summary, paths->dir, "summary.txt");
     p101_observe_join_path(env, err, paths->manifest, paths->dir, "manifest.txt");
     p101_observe_join_path(env, err, paths->receipt, paths->dir, "receipt.txt");
+    p101_observe_join_path(env, err, paths->tool_receipt, paths->dir, "tool-receipt.json");
 
 done:
     return;

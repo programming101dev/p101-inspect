@@ -18,6 +18,7 @@ struct report_paths
     char summary[PATH_LEN];
     char manifest[PATH_LEN];
     char receipt[PATH_LEN];
+    char tool_receipt[PATH_LEN];
 };
 
 void p101_observe_make_report_paths(const struct p101_env *env, struct p101_error *err, const struct arguments *args, struct report_paths *paths);

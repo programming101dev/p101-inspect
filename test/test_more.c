@@ -108,6 +108,11 @@ static void test_path_and_report_writers(void)
     p101_observe_write_summary_file(more_env, more_error, &args, &paths, &result);
     p101_observe_write_receipt_file(more_env, more_error, &paths, &result);
     reset_error();
+    p101_strncpy(more_env, paths.tool_receipt, "/definitely/missing/tool-receipt", sizeof(paths.tool_receipt) - 1U);
+    p101_observe_write_receipt_file(more_env, more_error, &paths, &result);
+    TEST_ASSERT_TRUE(p101_error_has_error(more_error));
+    reset_error();
+    p101_observe_join_path(more_env, more_error, paths.tool_receipt, paths.dir, "tool-receipt.json");
     result.command_status = SIGTERM;
     p101_observe_write_receipt_file(more_env, more_error, &paths, &result);
     reset_error();

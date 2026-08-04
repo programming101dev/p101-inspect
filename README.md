@@ -40,6 +40,7 @@ directory. The directory must not already exist.
     calls.log
     manifest.txt
     receipt.txt
+    tool-receipt.json
     summary.txt
 
 The observed command receives these environment settings:
@@ -65,6 +66,13 @@ platform. The log contract is owned by
 admitted logs. It uses FNV-1a 64 for inexpensive change
 detection, not cryptographic authenticity. Raw TSV events are not hash-chained
 or synchronously flushed per event.
+`tool-receipt.json` uses the shared `lib_tool_event` run-receipt contract. It
+binds the tool, capture policy, run identity, outcome, and the fingerprint of
+`receipt.txt` in a machine-readable record. Because `receipt.txt` fingerprints
+every admitted capture artifact, that binding covers the complete admitted
+evidence set. The v4 semantic digest makes tampering or accidental edits
+detectable with `p101-tool-receipt verify tool-receipt.json`. The receipt states
+its non-proofs; its FNV digests are not authenticity signatures.
 The event log also has a
 teaching exercise in [`docs/event-log-assignment.md`](docs/event-log-assignment.md).
 

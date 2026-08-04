@@ -9,18 +9,28 @@
 
 static int finish_capture(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result)
 {
+    int status;
+
     p101_observe_write_summary_file(env, err, args, paths, result);
     p101_observe_write_receipt_file(env, err, paths, result);
     if(p101_error_has_error(err))
     {
-        return EXIT_TROUBLE;
+        status = EXIT_TROUBLE;
     }
-    p101_printf(env, err, "p101-observe: captured run in %s\n", paths->dir);
-    if(p101_observe_status_is_success(result->command_status))
+    else
     {
-        return EXIT_SUCCESS;
+        p101_printf(env, err, "p101-observe: captured run in %s\n", paths->dir);
+        if(p101_observe_status_is_success(result->command_status))
+        {
+            status = EXIT_SUCCESS;
+        }
+        else
+        {
+            status = EXIT_FINDINGS;
+        }
     }
-    return EXIT_FINDINGS;
+
+    return status;
 }
 
 #ifdef P101_OBSERVE_TESTING

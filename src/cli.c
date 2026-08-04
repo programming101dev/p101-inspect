@@ -3,7 +3,6 @@
 #include "errors.h"
 #include <p101_c/p101_ctype.h>
 #include <p101_c/p101_stdio.h>
-#include <p101_c/p101_stdlib.h>
 #include <p101_c/p101_string.h>
 #include <p101_cli/cli.h>
 #include <stdlib.h>
@@ -23,7 +22,8 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
 
     if(argc == 2 && p101_strcmp(env, argv[1], "--help") == 0)
     {
-        p101_observe_usage(env, err, argv[0], EXIT_SUCCESS, NULL);
+        args->show_help = true;
+        return;
     }
 
     while((opt = p101_getopt(env, argc, argv, ":hvARo:")) != -1 && p101_error_has_no_error(err))
@@ -32,7 +32,8 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
         {
             case 'h':
             {
-                p101_observe_usage(env, err, argv[0], EXIT_SUCCESS, NULL);
+                args->show_help = true;
+                break;
             }
             case 'v':
             {
@@ -116,9 +117,10 @@ done:
     return;
 }
 
-_Noreturn void p101_observe_usage(const struct p101_env *env, struct p101_error *err, const char *program_name, int exit_code, const char *message)
+void p101_observe_usage(const struct p101_env *env, struct p101_error *err, const char *program_name, int exit_code, const char *message)
 {
     P101_TRACE_SCOPE(env);
+    (void)exit_code;
 
 #ifndef P101_SUPPRESS_USAGE_TEXT
     if(message != NULL)
@@ -136,9 +138,8 @@ _Noreturn void p101_observe_usage(const struct p101_env *env, struct p101_error 
     p101_fputs(env, err, "                           (default: p101-observe-<pid>)\n", stderr);
     p101_fputs(env, err, "\nUse `p101 run` to capture and analyze in one command.\n", stderr);
 #else
+    (void)exit_code;
     (void)message;
     (void)program_name;
 #endif
-
-    p101_exit(env, exit_code);
 }

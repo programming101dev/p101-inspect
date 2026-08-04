@@ -35,6 +35,10 @@ test -e "$work/capture/resources.log"
 test -e "$work/capture/calls.log"
 test ! -e "$work/capture/correlated-report.txt"
 grep -q 'analysis=deferred' "$work/capture/receipt.txt"
+grep -q '"schema":"p101-tool-run-receipt-v4"' "$work/capture/tool-receipt.json"
+grep -q '"input":{"schema":"p101-run-receipt-v1"' "$work/capture/tool-receipt.json"
+grep -q '"policy":{"schema":"p101-observe-capture-policy-v1"' "$work/capture/tool-receipt.json"
+grep -q '"receipt_digest":{"algorithm":"fnv1a64-semantic-v1"' "$work/capture/tool-receipt.json"
 
 expect 1 -o "$work/command-fail" -- "$false_path"
 expect 1 -o "$work/exec-fail" -- /definitely/missing

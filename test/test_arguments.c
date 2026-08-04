@@ -129,6 +129,7 @@ static void test_make_report_paths_includes_manifest_and_graph(void)
     TEST_ASSERT_EQUAL_STRING_LEN("p101-", paths.run_id, 5U);
     TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/manifest.txt", paths.manifest);
     TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/receipt.txt", paths.receipt);
+    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/tool-receipt.json", paths.tool_receipt);
     TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/resources.log", paths.resource_log);
     TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/calls.log", paths.call_log);
 }

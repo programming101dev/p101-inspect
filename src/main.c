@@ -20,6 +20,13 @@ int main(int argc, char *argv[])
     p101_observe_arguments_init(env, &args);
     p101_observe_parse_arguments(env, err, argc, argv, &args);
 
+    if(args.show_help && p101_error_has_no_error(err))
+    {
+        p101_observe_usage(env, err, argv[0], EXIT_SUCCESS, NULL);
+        ret_val = EXIT_SUCCESS;
+        goto done;
+    }
+
     if(p101_error_has_error(err))
     {
         goto done;
@@ -46,8 +53,10 @@ done:
         {
             p101_observe_usage(env, err, argv[0], EXIT_TROUBLE, p101_error_get_message(err));
         }
-
-        p101_fprintf(env, err, stderr, "%s\n", p101_error_get_message(err));
+        else
+        {
+            p101_fprintf(env, err, stderr, "%s\n", p101_error_get_message(err));
+        }
         ret_val = EXIT_TROUBLE;
     }
 
