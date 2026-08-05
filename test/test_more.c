@@ -26,7 +26,7 @@ void p101_observe_test_clear_observe_environment(const struct p101_env *env, str
 void p101_observe_test_clear_helper_environment(const struct p101_env *env, struct p101_error *err);
 void p101_observe_test_setup_observed_child(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths);
 void p101_observe_test_setup_helper_child(const struct p101_env *env, struct p101_error *err);
-int p101_observe_test_finish_capture_only(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result);
+int  p101_observe_test_finish_capture_only(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result);
 
 static void reset_error(void)
 {
@@ -95,10 +95,10 @@ static void test_path_and_report_writers(void)
     p101_memset(more_env, &args, 0, sizeof(args));
     p101_memset(more_env, &paths, 0, sizeof(paths));
     p101_memset(more_env, &result, 0, sizeof(result));
-    args.command_argv     = command;
-    args.log_arguments    = true;
-    args.log_results      = true;
-    args.report_dir       = dir;
+    args.command_argv  = command;
+    args.log_arguments = true;
+    args.log_results   = true;
+    args.report_dir    = dir;
     p101_observe_make_report_paths(more_env, more_error, &args, &paths);
 
     p101_observe_create_empty_file(more_env, more_error, paths.resource_log);
