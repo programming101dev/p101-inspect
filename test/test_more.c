@@ -176,7 +176,7 @@ static void test_runner_environment_helpers(void)
     p101_setenv(more_env, more_error, CHILD_FAULT_CALL_ENV, "3", 1);
     p101_setenv(more_env, more_error, CHILD_FAULT_ERRNO_ENV, "5", 1);
     p101_setenv(more_env, more_error, CHILD_FAULT_LOG_ENV, "fault.log", 1);
-    p101_setenv(more_env, more_error, CHILD_FAULT_NAME_ENV, "read", 1);
+    p101_setenv(more_env, more_error, CHILD_FAULT_NAME_ENV, "p101_read", 1);
     p101_setenv(more_env, more_error, CHILD_FAULT_MODE_ENV, "short", 1);
     p101_setenv(more_env, more_error, CHILD_FAULT_AMOUNT_ENV, "2", 1);
     p101_setenv(more_env, more_error, CHILD_FAULT_REPEAT_ENV, "2", 1);
