@@ -37,6 +37,7 @@
 
 void p101_observe_make_report_paths(const struct p101_env *env, struct p101_error *err, const struct arguments *args, struct report_paths *paths)
 {
+    bool            p101_call_result_1;
     struct timespec now;
     intmax_t        seconds;
     long            pid;
@@ -45,7 +46,8 @@ void p101_observe_make_report_paths(const struct p101_env *env, struct p101_erro
     pid = p101_getpid(env);
     p101_clock_gettime(env, err, CLOCK_REALTIME, &now);
     // GCOVR_EXCL_BR_START: clock failure is an OS-level defensive path.
-    if(p101_error_has_error(err))
+    p101_call_result_1 = p101_error_has_error(err);
+    if(p101_call_result_1)
     {
         goto done;    // GCOVR_EXCL_LINE
     }

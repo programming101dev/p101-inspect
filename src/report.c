@@ -54,6 +54,7 @@ done:
 
 void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_error *err, const struct report_paths *paths, const struct observe_result *result)
 {
+    bool  p101_call_result_1;
     FILE *stream;
 
     P101_TRACE_SCOPE(env);
@@ -91,7 +92,8 @@ done:
     {
         p101_fclose(env, err, stream);
     }
-    if(p101_error_has_no_error(err))
+    p101_call_result_1 = p101_error_has_no_error(err);
+    if(p101_call_result_1)
     {
         write_tool_receipt(env, err, paths, result);
     }
@@ -99,6 +101,10 @@ done:
 
 static void write_tool_receipt(const struct p101_env *env, struct p101_error *err, const struct report_paths *paths, const struct observe_result *result)
 {
+    int                                p101_call_result_2;
+    bool                               p101_call_result_3;
+    bool                               p101_call_result_4;
+    int                                p101_call_result_5;
     struct p101_tool_event_fingerprint fingerprint;
     struct p101_tool_run_receipt       receipt;
     char                               input_identity[TOOL_RECEIPT_INPUT_IDENTITY_LEN];
@@ -110,12 +116,14 @@ static void write_tool_receipt(const struct p101_env *env, struct p101_error *er
      * receipt transitively to the complete admitted evidence set, rather than
      * only to the manifest which names the artifacts.
      */
-    if(p101_tool_event_fingerprint_file(err, paths->receipt, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_BYTES, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_RECORDS, &fingerprint) != 0)
+    p101_call_result_2 = p101_tool_event_fingerprint_file(err, paths->receipt, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_BYTES, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_RECORDS, &fingerprint);
+    if(p101_call_result_2 != 0)
     {
         goto done;
     }
     p101_snprintf(env, err, input_identity, sizeof(input_identity), "fnv1a64:%016" PRIx64, fingerprint.fnv1a64);
-    if(p101_error_has_error(err))
+    p101_call_result_3 = p101_error_has_error(err);
+    if(p101_call_result_3)
     {
         goto done;
     }
@@ -130,7 +138,8 @@ static void write_tool_receipt(const struct p101_env *env, struct p101_error *er
     receipt.checks_attempted = TOOL_RECEIPT_ARTIFACT_CHECKS;
     receipt.checks_completed = TOOL_RECEIPT_ARTIFACT_CHECKS;
     receipt.does_not_prove   = "complete instrumentation, external truth, global process ordering, or cryptographic authenticity";
-    if(p101_observe_status_is_success(result->command_status))
+    p101_call_result_4       = p101_observe_status_is_success(result->command_status);
+    if(p101_call_result_4)
     {
         receipt.outcome          = P101_TOOL_OUTCOME_CLEAN;
         receipt.failure_reason   = P101_TOOL_FAILURE_NONE;
@@ -150,7 +159,8 @@ static void write_tool_receipt(const struct p101_env *env, struct p101_error *er
     {
         goto done;
     }
-    (void)p101_tool_run_receipt_write_json(err, stream, &receipt, &fingerprint);
+    p101_call_result_5 = p101_tool_run_receipt_write_json(err, stream, &receipt, &fingerprint);
+    (void)p101_call_result_5;
     p101_fclose(env, err, stream);
 
 done:
@@ -159,13 +169,17 @@ done:
 
 static void write_artifact_fingerprint(const struct p101_env *env, struct p101_error *err, FILE *stream, const char *role, const char *path)
 {
+    bool                               p101_call_result_6;
+    int                                p101_call_result_7;
     struct p101_tool_event_fingerprint fingerprint;
 
-    if(p101_error_has_error(err))    // GCOVR_EXCL_BR_LINE -- prior output failure propagation
+    p101_call_result_6 = p101_error_has_error(err);
+    if(p101_call_result_6)    // GCOVR_EXCL_BR_LINE -- prior output failure propagation
     {
         goto done;    // GCOVR_EXCL_LINE
     }
-    if(p101_tool_event_fingerprint_file(err, path, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_BYTES, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_RECORDS, &fingerprint) != 0)
+    p101_call_result_7 = p101_tool_event_fingerprint_file(err, path, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_BYTES, P101_TOOL_EVENT_RECEIPT_DEFAULT_MAX_RECORDS, &fingerprint);
+    if(p101_call_result_7 != 0)
     {
         goto done;
     }

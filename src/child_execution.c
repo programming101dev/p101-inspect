@@ -75,6 +75,7 @@ void p101_observe_test_setup_helper_child(const struct p101_env *env, struct p10
 
 int p101_observe_run_observed_command(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths)
 {
+    int                           p101_call_result_1;
     struct observed_child_context context;
     struct p101_tool_run_options  options;
 
@@ -87,11 +88,13 @@ int p101_observe_run_observed_command(const struct p101_env *env, struct p101_er
     options.output_mode         = REPORT_FILE_MODE;
     options.child_setup         = setup_observed_child;
     options.child_setup_context = &context;
-    return p101_tool_run_capture(env, err, args->command_argv, &options);
+    p101_call_result_1          = p101_tool_run_capture(env, err, args->command_argv, &options);
+    return p101_call_result_1;
 }
 
 int p101_observe_run_tool_capture(const struct p101_env *env, struct p101_error *err, char *const tool_argv[], const char *stdout_path, const char *stderr_path)
 {
+    int                          p101_call_result_2;
     struct p101_tool_run_options options;
 
     P101_TRACE_SCOPE(env);
@@ -101,7 +104,8 @@ int p101_observe_run_tool_capture(const struct p101_env *env, struct p101_error 
     options.output_mode         = REPORT_FILE_MODE;
     options.child_setup         = setup_helper_child;
     options.child_setup_context = NULL;
-    return p101_tool_run_capture(env, err, tool_argv, &options);
+    p101_call_result_2          = p101_tool_run_capture(env, err, tool_argv, &options);
+    return p101_call_result_2;
 }
 
 static void setup_observed_child(const struct p101_env *env, struct p101_error *err, void *context)

@@ -17,19 +17,42 @@ void p101_observe_arguments_init(const struct p101_env *env, struct arguments *a
 
 void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error *err, int argc, char *argv[], struct arguments *args)
 {
-    int opt;
+    int  p101_expression_result_3;
+    int  p101_call_result_4;
+    int  p101_call_result_1;
+    bool p101_call_result_2;
+    int  opt;
 
     P101_TRACE_SCOPE(env);
     opterr = 0;
 
-    if(argc == 2 && p101_strcmp(env, argv[1], "--help") == 0)
+    p101_expression_result_3 = 0;
+    if(argc == 2)
+    {
+        p101_call_result_4 = p101_strcmp(env, argv[1], "--help");
+        if(p101_call_result_4 == 0)
+        {
+            p101_expression_result_3 = 1;
+        }
+    }
+    if(p101_expression_result_3)
     {
         args->show_help = true;
-        return;
+        goto done;
     }
 
-    while((opt = p101_getopt(env, argc, argv, ":hvARo:")) != -1 && p101_error_has_no_error(err))
+    for(;;)
     {
+        opt = p101_getopt(env, argc, argv, ":hvARo:");
+        if(opt == -1)
+        {
+            break;
+        }
+        p101_call_result_2 = p101_error_has_no_error(err);
+        if(!p101_call_result_2)
+        {
+            break;
+        }
         switch(opt)    // GCOVR_EXCL_BR_LINE -- default is a defensive p101_getopt contract check
         {
             case 'h':
@@ -69,7 +92,8 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
             {
                 char msg[MSG_LEN];
 
-                if(p101_isprint(env, optopt))
+                p101_call_result_1 = p101_isprint(env, optopt);
+                if(p101_call_result_1)
                 {
                     p101_snprintf(env, err, msg, sizeof(msg), "Unknown option '-%c'.", optopt);
                 }
@@ -84,8 +108,18 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
             default:    // GCOVR_EXCL_START
             {
                 char msg[MSG_LEN];
+                int  option_character;
 
-                p101_snprintf(env, err, msg, sizeof(msg), "Internal error: unhandled option '-%c' returned by getopt.", p101_isprint(env, opt) ? opt : '?');
+                p101_call_result_1 = p101_isprint(env, opt);
+                if(p101_call_result_1)
+                {
+                    option_character = opt;
+                }
+                else
+                {
+                    option_character = '?';
+                }
+                p101_snprintf(env, err, msg, sizeof(msg), "Internal error: unhandled option '-%c' returned by getopt.", option_character);
                 P101_ERROR_RAISE_USER(err, msg, ERR_USAGE);
                 break;
             }
@@ -93,10 +127,14 @@ void p101_observe_parse_arguments(const struct p101_env *env, struct p101_error 
         }
     }
 
-    if(p101_error_has_no_error(err))
+    p101_call_result_2 = p101_error_has_no_error(err);
+    if(p101_call_result_2)
     {
         args->command_argv = &argv[optind];
     }
+
+done:
+    return;
 }
 
 void p101_observe_check_arguments(const struct p101_env *env, struct p101_error *err, const struct arguments *args)

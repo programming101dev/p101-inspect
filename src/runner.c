@@ -9,18 +9,22 @@
 
 static int finish_capture(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result)
 {
-    int status;
+    bool p101_call_result_1;
+    bool p101_call_result_2;
+    int  status;
 
     p101_observe_write_summary_file(env, err, args, paths, result);
     p101_observe_write_receipt_file(env, err, paths, result);
-    if(p101_error_has_error(err))
+    p101_call_result_1 = p101_error_has_error(err);
+    if(p101_call_result_1)
     {
         status = EXIT_TROUBLE;
     }
     else
     {
         p101_printf(env, err, "p101-observe: captured run in %s\n", paths->dir);
-        if(p101_observe_status_is_success(result->command_status))
+        p101_call_result_2 = p101_observe_status_is_success(result->command_status);
+        if(p101_call_result_2)
         {
             status = EXIT_SUCCESS;
         }
@@ -42,6 +46,11 @@ int p101_observe_test_finish_capture_only(const struct p101_env *env, struct p10
 
 int p101_observe_run(const struct p101_env *env, struct p101_error *err, const struct arguments *args)
 {
+    bool                  p101_call_result_3;
+    bool                  p101_call_result_4;
+    bool                  p101_call_result_5;
+    bool                  p101_call_result_6;
+    bool                  p101_call_result_7;
     struct report_paths   paths;
     struct observe_result result;
     int                   ret_val;
@@ -52,29 +61,34 @@ int p101_observe_run(const struct p101_env *env, struct p101_error *err, const s
     ret_val = EXIT_TROUBLE;
 
     p101_observe_make_report_paths(env, err, args, &paths);
-    if(p101_error_has_error(err))
+    p101_call_result_3 = p101_error_has_error(err);
+    if(p101_call_result_3)
     {
         goto done;
     }
     p101_observe_create_report_dir(env, err, paths.dir);
-    if(p101_error_has_error(err))
+    p101_call_result_4 = p101_error_has_error(err);
+    if(p101_call_result_4)
     {
         goto done;
     }
     p101_observe_write_command_file(env, err, paths.command, args->command_argv);
     p101_observe_write_manifest_file(env, err, paths.manifest, args, &paths);
-    if(p101_error_has_error(err))
+    p101_call_result_5 = p101_error_has_error(err);
+    if(p101_call_result_5)
     {
         goto done;
     }
     p101_observe_create_empty_file(env, err, paths.resource_log);
     p101_observe_create_empty_file(env, err, paths.call_log);
-    if(p101_error_has_error(err))
+    p101_call_result_6 = p101_error_has_error(err);
+    if(p101_call_result_6)
     {
         goto done;
     }
     result.command_status = p101_observe_run_observed_command(env, err, args, &paths);
-    if(p101_error_has_error(err))
+    p101_call_result_7    = p101_error_has_error(err);
+    if(p101_call_result_7)
     {
         goto done;
     }
