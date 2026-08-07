@@ -108,7 +108,7 @@ int p101_observe_run_tool_capture(const struct p101_env *env, struct p101_error 
     return p101_call_result_2;
 }
 
-static void setup_observed_child(const struct p101_env *env, struct p101_error *err, void *context)
+static void setup_observed_child(const struct p101_env *env, struct p101_error *err, void *context)    // cppcheck-suppress constParameterCallback
 {
     const struct observed_child_context *child;
 

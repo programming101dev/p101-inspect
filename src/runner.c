@@ -10,7 +10,6 @@
 static int finish_capture(const struct p101_env *env, struct p101_error *err, const struct arguments *args, const struct report_paths *paths, const struct observe_result *result)
 {
     bool p101_call_result_1;
-    bool p101_call_result_2;
     int  status;
 
     p101_observe_write_summary_file(env, err, args, paths, result);
@@ -22,6 +21,8 @@ static int finish_capture(const struct p101_env *env, struct p101_error *err, co
     }
     else
     {
+        bool p101_call_result_2;
+
         p101_printf(env, err, "p101-observe: captured run in %s\n", paths->dir);
         p101_call_result_2 = p101_observe_status_is_success(result->command_status);
         if(p101_call_result_2)
