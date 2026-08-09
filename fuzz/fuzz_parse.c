@@ -1,5 +1,5 @@
 /*
- * libFuzzer harness for p101-observe's argument parser
+ * libFuzzer harness for inspect-capture's argument parser
  * (src/cli.c: p101_observe_parse_arguments()). This fuzzes the code YOU write, not a
  * library function.
  */

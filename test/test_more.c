@@ -112,7 +112,7 @@ static void test_path_and_report_writers(void)
     struct arguments      args;
     struct report_paths   paths;
     struct observe_result result;
-    char                  dir[]     = "/tmp/p101-observe-writers-XXXXXX";
+    char                  dir[]     = "/tmp/inspect-capture-writers-XXXXXX";
     char                 *command[] = {"demo", "argument", NULL};
 
     TEST_ASSERT_NOT_NULL(p101_mkdtemp(more_env, more_error, dir));
@@ -167,8 +167,8 @@ static void test_runner_environment_helpers(void)
 {
     struct arguments    args;
     struct report_paths paths;
-    char                out_path[] = "/tmp/p101-observe-stdout-XXXXXX";
-    char                err_path[] = "/tmp/p101-observe-stderr-XXXXXX";
+    char                out_path[] = "/tmp/inspect-capture-stdout-XXXXXX";
+    char                err_path[] = "/tmp/inspect-capture-stderr-XXXXXX";
     int                 out_fd;
     int                 err_fd;
     int                 saved_stdout;
@@ -243,8 +243,8 @@ static void test_runner_result_predicates(void)
     p101_memset(more_env, &args, 0, sizeof(args));
     p101_memset(more_env, &paths, 0, sizeof(paths));
 
-    p101_strncpy(more_env, paths.summary, "/missing/p101-observe-summary", sizeof(paths.summary) - 1U);
-    p101_strncpy(more_env, paths.receipt, "/missing/p101-observe-receipt", sizeof(paths.receipt) - 1U);
+    p101_strncpy(more_env, paths.summary, "/missing/inspect-capture-summary", sizeof(paths.summary) - 1U);
+    p101_strncpy(more_env, paths.receipt, "/missing/inspect-capture-receipt", sizeof(paths.receipt) - 1U);
     TEST_ASSERT_EQUAL_INT(EXIT_TROUBLE, p101_observe_test_finish_capture_only(more_env, more_error, &args, &paths, &result));
     TEST_ASSERT_TRUE(p101_error_has_error(more_error));
     reset_error();

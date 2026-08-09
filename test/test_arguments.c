@@ -39,7 +39,7 @@ static void reset_getopt(void)
 
 static void test_parse_accepts_capture_directory_and_command(void)
 {
-    char            *argv[] = {"p101-observe", "-o", "report", "--", "prog", "arg", NULL};
+    char            *argv[] = {"inspect-capture", "-o", "report", "--", "prog", "arg", NULL};
     struct arguments args;
 
     reset_getopt();
@@ -56,7 +56,7 @@ static void test_parse_accepts_capture_directory_and_command(void)
 
 static void test_call_values_are_opt_in(void)
 {
-    char            *argv[] = {"p101-observe", "-A", "-R", "--", "prog", NULL};
+    char            *argv[] = {"inspect-capture", "-A", "-R", "--", "prog", NULL};
     struct arguments args;
 
     reset_getopt();
@@ -74,7 +74,7 @@ static void test_call_values_are_opt_in(void)
 
 static void test_parse_rejects_missing_command(void)
 {
-    char            *argv[] = {"p101-observe", "-o", "report", NULL};
+    char            *argv[] = {"inspect-capture", "-o", "report", NULL};
     struct arguments args;
 
     reset_getopt();
@@ -88,7 +88,7 @@ static void test_parse_rejects_missing_command(void)
 
 static void test_parse_rejects_retired_analyzer_option(void)
 {
-    char            *argv[] = {"p101-observe", "-p", "retired", "--", "prog", NULL};
+    char            *argv[] = {"inspect-capture", "-p", "retired", "--", "prog", NULL};
     struct arguments args;
 
     reset_getopt();
@@ -121,17 +121,17 @@ static void test_make_report_paths_includes_manifest_and_graph(void)
 
     p101_memset(env, &args, 0, sizeof(args));
     p101_memset(env, &paths, 0, sizeof(paths));
-    args.report_dir = "/tmp/p101-observe-test";
+    args.report_dir = "/tmp/inspect-capture-test";
 
     p101_observe_make_report_paths(env, error, &args, &paths);
 
     TEST_ASSERT_FALSE(p101_error_has_error(error));
     TEST_ASSERT_EQUAL_STRING_LEN("p101-", paths.run_id, 5U);
-    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/manifest.txt", paths.manifest);
-    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/receipt.txt", paths.receipt);
-    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/tool-receipt.json", paths.tool_receipt);
-    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/resources.log", paths.resource_log);
-    TEST_ASSERT_EQUAL_STRING("/tmp/p101-observe-test/calls.log", paths.call_log);
+    TEST_ASSERT_EQUAL_STRING("/tmp/inspect-capture-test/manifest.txt", paths.manifest);
+    TEST_ASSERT_EQUAL_STRING("/tmp/inspect-capture-test/receipt.txt", paths.receipt);
+    TEST_ASSERT_EQUAL_STRING("/tmp/inspect-capture-test/tool-receipt.json", paths.tool_receipt);
+    TEST_ASSERT_EQUAL_STRING("/tmp/inspect-capture-test/resources.log", paths.resource_log);
+    TEST_ASSERT_EQUAL_STRING("/tmp/inspect-capture-test/calls.log", paths.call_log);
 }
 
 int main(void)

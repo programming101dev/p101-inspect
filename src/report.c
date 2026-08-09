@@ -29,11 +29,11 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
         goto done;    // GCOVR_EXCL_LINE -- fopen failure propagation
     }
 
-    p101_fputs(env, err, "p101-observe summary\n", stream);
+    p101_fputs(env, err, "inspect-capture summary\n", stream);
     p101_fputs(env, err, "====================\n\n", stream);
     p101_fprintf(env, err, stream, "command: %s\n", args->command_argv[0]);
     p101_fprintf(env, err, stream, "report_dir: %s\n\n", paths->dir);
-    p101_fputs(env, err, "analysis: deferred to p101 analyze\n", stream);
+    p101_fputs(env, err, "analysis: deferred to scripts/runtime/p101-analyze.py\n", stream);
     p101_observe_print_status(env, err, stream, "command", result->command_status);
 
     p101_fputs(env, err, "\nfiles:\n", stream);
@@ -64,7 +64,7 @@ void p101_observe_write_receipt_file(const struct p101_env *env, struct p101_err
         goto done;    // GCOVR_EXCL_LINE -- fopen failure propagation
     }
 
-    p101_fputs(env, err, "p101-observe receipt\n", stream);
+    p101_fputs(env, err, "inspect-capture receipt\n", stream);
     p101_fputs(env, err, "schema=p101-run-receipt-v1\n", stream);
     p101_fprintf(env, err, stream, "run_id=%s\n", paths->run_id);
     p101_fputs(env, err, "event_schema=" P101_TOOL_EVENT_SCHEMA_NAME "\n", stream);
@@ -128,11 +128,11 @@ static void write_tool_receipt(const struct p101_env *env, struct p101_error *er
         goto done;
     }
 
-    receipt.tool_name        = "p101-observe";
+    receipt.tool_name        = "inspect-capture";
     receipt.tool_version     = "1.0.0";
     receipt.input_schema     = "p101-run-receipt-v1";
     receipt.input_identity   = input_identity;
-    receipt.policy_schema    = "p101-observe-capture-policy-v1";
+    receipt.policy_schema    = "inspect-capture-policy-v1";
     receipt.policy_identity  = "event-v5:buffered:bounded-fnv1a64";
     receipt.run_identity     = paths->run_id;
     receipt.checks_attempted = TOOL_RECEIPT_ARTIFACT_CHECKS;

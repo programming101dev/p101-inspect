@@ -23,7 +23,7 @@ static int finish_capture(const struct p101_env *env, struct p101_error *err, co
     {
         bool p101_call_result_2;
 
-        p101_printf(env, err, "p101-observe: captured run in %s\n", paths->dir);
+        p101_printf(env, err, "inspect-capture: captured run in %s\n", paths->dir);
         p101_call_result_2 = p101_observe_status_is_success(result->command_status);
         if(p101_call_result_2)
         {

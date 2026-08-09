@@ -1,16 +1,16 @@
 # Commands
 
-Quick reference for `p101-observe`. Every script also supports `--help`.
+Quick reference for `inspect-capture`. Every script also supports `--help`.
 Run `./change-compiler.sh -c <compiler>` once before building.
 
 ## Running the tool
 
 | Command | What it does |
 | --- | --- |
-| `p101-observe -- ./prog` | Run `./prog` and capture p101 resource/call logs |
-| `p101-observe -o capture -- ./prog arg` | Write immutable evidence to `capture/` |
-| `p101 run -o analysis -- ./prog` | Capture and analyze through the canonical facade |
-| `p101-observe -v -- ./prog` | Verbose: trace `p101-observe` itself |
+| `inspect-capture -- ./prog` | Run `./prog` and capture p101 resource/call logs |
+| `inspect-capture -o capture -- ./prog arg` | Write immutable evidence to `capture/` |
+| `scripts/runtime/p101-run.py -o analysis -- ./prog` | Capture and analyze through the canonical composition |
+| `inspect-capture -v -- ./prog` | Verbose: trace `inspect-capture` itself |
 
 Each capture directory includes `manifest.txt` for reproducibility,
 `receipt.txt` for bounded run identity, status, and artifact fingerprints, and

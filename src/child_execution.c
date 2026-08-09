@@ -84,7 +84,7 @@ int p101_observe_run_observed_command(const struct p101_env *env, struct p101_er
     context.paths               = paths;
     options.stdout_path         = paths->stdout_text;
     options.stderr_path         = paths->stderr_text;
-    options.diagnostic_name     = "p101-observe";
+    options.diagnostic_name     = "inspect-capture";
     options.output_mode         = REPORT_FILE_MODE;
     options.child_setup         = setup_observed_child;
     options.child_setup_context = &context;
@@ -100,7 +100,7 @@ int p101_observe_run_tool_capture(const struct p101_env *env, struct p101_error 
     P101_TRACE_SCOPE(env);
     options.stdout_path         = stdout_path;
     options.stderr_path         = stderr_path;
-    options.diagnostic_name     = "p101-observe";
+    options.diagnostic_name     = "inspect-capture";
     options.output_mode         = REPORT_FILE_MODE;
     options.child_setup         = setup_helper_child;
     options.child_setup_context = NULL;

@@ -8,7 +8,7 @@ For this assignment, students build a tiny analyzer over `resources.log`.
 
 ## Input
 
-Use a `resources.log` produced by `p101-observe`. The format is documented in
+Use a `resources.log` produced by `inspect-capture`. The format is documented in
 the
 [`lib_tool_event` protocol specification](https://github.com/programming101dev/lib_tool_event/blob/main/docs/event-format.md).
 
@@ -49,6 +49,6 @@ Then do the same state-machine exercise for allocations:
 ## Instructor note
 
 This assignment teaches the same state-machine reasoning used by
-the canonical `p101 analyze` resource policy, without requiring students to understand the full
+the canonical `scripts/runtime/p101-analyze.py` resource policy, without requiring students to understand the full
 implementation first. The point is not to write the fastest analyzer; the point
 is to make ownership visible.

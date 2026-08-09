@@ -2,7 +2,7 @@
 # selects a fuzzer-capable clang and passes it as CMAKE_C_COMPILER. Separate
 # from the strict analysis build.
 #
-# TARGET: p101-observe's argument parser in src/cli.c. Help is represented as
+# TARGET: inspect-capture's argument parser in src/cli.c. Help is represented as
 # ordinary parser state, so every usage path remains a normal fuzz input.
 cmake_minimum_required(VERSION 3.14)
 project(p101_fuzz C)

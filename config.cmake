@@ -1,6 +1,6 @@
-set(PROJECT_NAME "p101-observe")
-set(PROJECT_VERSION "1.0.0")
-set(PROJECT_DESCRIPTION "Runs a p101 program with resource and call observation enabled")
+set(PROJECT_NAME "p101-inspect")
+set(PROJECT_VERSION "2.0.0")
+set(PROJECT_DESCRIPTION "Captures program events for interactive inspection")
 set(PROJECT_LANGUAGE "C")
 
 set(CMAKE_C_STANDARD 17)
@@ -25,11 +25,11 @@ set(BSD_STANDARD_FLAGS
 )
 
 # Define targets
-set(EXECUTABLE_TARGETS main)
+set(EXECUTABLE_TARGETS inspect_capture)
 set(LIBRARY_TARGETS "")
-set(main_OUTPUT_NAME p101-observe)
+set(inspect_capture_OUTPUT_NAME inspect-capture)
 
-set(main_SOURCES
+set(inspect_capture_SOURCES
     src/cli.c
     src/child_execution.c
     src/main.c
@@ -39,7 +39,7 @@ set(main_SOURCES
         src/status.c
 )
 
-set(main_HEADERS
+set(inspect_capture_HEADERS
         include/arguments.h
         include/cli.h
         include/constants.h
@@ -50,7 +50,7 @@ set(main_HEADERS
         include/status.h
 )
 
-set(main_LINK_LIBRARIES
+set(inspect_capture_LINK_LIBRARIES
         p101_error
         p101_env
         p101_tool_event

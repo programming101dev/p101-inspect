@@ -3,7 +3,7 @@
 
 #include <p101_env/env.h>
 
-#define DEFAULT_REPORT_PREFIX "p101-observe"
+#define DEFAULT_REPORT_PREFIX "inspect-capture"
 
 /* The shared p101 fault/logging variables are owned by lib_env; these are
  * local spellings of the one definition in <p101_env/env.h>. */
@@ -19,7 +19,7 @@
 #define FAULT_AMOUNT_ENV P101_ENV_FAULT_AMOUNT_ENV
 #define FAULT_REPEAT_ENV P101_ENV_FAULT_REPEAT_ENV
 
-/* The child-side names are the p101-observe launch protocol, not lib_env. */
+/* The child-side names are the inspect-capture launch protocol, not lib_env. */
 #define CHILD_FAULT_CALL_ENV "P101_OBSERVE_CHILD_FAULT_CALL"
 #define CHILD_FAULT_ERRNO_ENV "P101_OBSERVE_CHILD_FAULT_ERRNO"
 #define CHILD_FAULT_LOG_ENV "P101_OBSERVE_CHILD_FAULT_LOG"

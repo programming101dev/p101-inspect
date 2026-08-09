@@ -193,8 +193,8 @@ void p101_observe_write_manifest_file(const struct p101_env *env, struct p101_er
     }
     // GCOVR_EXCL_STOP
 
-    p101_fputs(env, err, "p101-observe manifest\n", stream);
-    p101_fputs(env, err, "schema=p101-observe-manifest-v2\n", stream);
+    p101_fputs(env, err, "inspect-capture manifest\n", stream);
+    p101_fputs(env, err, "schema=inspect-capture-manifest-v2\n", stream);
     p101_fprintf(env, err, stream, "run_id=%s\n", paths->run_id);
     p101_fputs(env, err, "event_schema=" P101_TOOL_EVENT_SCHEMA_NAME "\n", stream);
     p101_fprintf(env, err, stream, "event_log_version=%d\n", P101_TOOL_EVENT_LOG_VERSION);

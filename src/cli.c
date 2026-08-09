@@ -181,12 +181,12 @@ void p101_observe_usage(const struct p101_env *env, struct p101_error *err, cons
     p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-A] [-R] [-o <capture-dir>] -- <command> [args...]\n", program_name);
     p101_fputs(env, err, "Options:\n", stderr);
     p101_fputs(env, err, "  -h                       Display this help message and exit\n", stderr);
-    p101_fputs(env, err, "  -v                       Enable verbose p101 tracing in p101-observe\n", stderr);
+    p101_fputs(env, err, "  -v                       Enable verbose p101 tracing in inspect-capture\n", stderr);
     p101_fputs(env, err, "  -A                       Opt in to call-argument values (may contain sensitive data)\n", stderr);
     p101_fputs(env, err, "  -R                       Opt in to call-result values (may contain sensitive data)\n", stderr);
     p101_fputs(env, err, "  -o <capture-dir>         Directory to create for captured evidence\n", stderr);
-    p101_fputs(env, err, "                           (default: p101-observe-<pid>)\n", stderr);
-    p101_fputs(env, err, "\nUse `p101 run` to capture and analyze in one command.\n", stderr);
+    p101_fputs(env, err, "                           (default: inspect-capture-<pid>)\n", stderr);
+    p101_fputs(env, err, "\nUse scripts/runtime/p101-run.py to capture and analyze in one command.\n", stderr);
 #else
     (void)exit_code;
     (void)message;
