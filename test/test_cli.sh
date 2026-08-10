@@ -40,6 +40,9 @@ grep -q '"input":{"schema":"p101-run-receipt-v1"' "$work/capture/tool-receipt.js
 grep -q '"policy":{"schema":"inspect-capture-policy-v1"' "$work/capture/tool-receipt.json"
 grep -q '"receipt_digest":{"algorithm":"fnv1a64-semantic-v1"' "$work/capture/tool-receipt.json"
 
+expect 0 -o "$work/missing/parent/capture" -- "$true_path"
+test -e "$work/missing/parent/capture/tool-receipt.json"
+
 expect 1 -o "$work/command-fail" -- "$false_path"
 expect 1 -o "$work/exec-fail" -- /definitely/missing
 expect 0 -v -A -R -o "$work/verbose" -- "$true_path"

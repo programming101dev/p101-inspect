@@ -1,6 +1,7 @@
 #include "paths.h"
 #include "constants.h"
 #include "errors.h"
+#include <errno.h>
 #include <inttypes.h>
 #include <p101_c/p101_stdio.h>
 #include <p101_c/p101_string.h>
@@ -34,6 +35,22 @@
 #include <stdio.h>
 #include <sys/utsname.h>
 #include <time.h>
+
+static void create_directory_component(const struct p101_env *env, struct p101_error *err, const char *path)
+{
+    struct p101_error *optional_error;
+    int                result;
+    int                actual_error;
+
+    optional_error = p101_error_optional();
+    result         = p101_mkdir(env, optional_error, path, REPORT_DIR_MODE);
+    actual_error   = errno;
+
+    if(result == -1 && actual_error != EEXIST)
+    {
+        P101_ERROR_RAISE_ERRNO(err, actual_error);
+    }
+}
 
 void p101_observe_make_report_paths(const struct p101_env *env, struct p101_error *err, const struct arguments *args, struct report_paths *paths)
 {
@@ -101,8 +118,46 @@ void p101_observe_join_path(const struct p101_env *env, struct p101_error *err, 
 
 void p101_observe_create_report_dir(const struct p101_env *env, struct p101_error *err, const char *path)
 {
+    char   path_copy[PATH_LEN];
+    size_t length;
+    bool   has_error;
+
     P101_TRACE_SCOPE(env);
-    p101_mkdir(env, err, path, REPORT_DIR_MODE);
+    length = p101_strlen(env, path);
+    if(length >= sizeof(path_copy))
+    {
+        P101_ERROR_RAISE_USER(err, "The report directory path is too long.", ERR_USAGE);
+        goto done;
+    }
+
+    p101_memcpy(env, path_copy, path, length + 1U);
+    for(size_t index = 0U; index <= length; index++)
+    {
+        char separator;
+
+        if(path_copy[index] != '/' && path_copy[index] != '\0')
+        {
+            continue;
+        }
+        if(index == 0U || path_copy[index - 1U] == '/')
+        {
+            continue;
+        }
+
+        separator        = path_copy[index];
+        path_copy[index] = '\0';
+        create_directory_component(env, err, path_copy);
+        path_copy[index] = separator;
+
+        has_error = p101_error_has_error(err);
+        if(has_error)
+        {
+            goto done;
+        }
+    }
+
+done:
+    return;
 }
 
 void p101_observe_create_empty_file(const struct p101_env *env, struct p101_error *err, const char *path)
