@@ -42,7 +42,7 @@ static void create_directory_component(const struct p101_env *env, struct p101_e
     int                result;
     int                actual_error;
 
-    optional_error = p101_error_optional();
+    optional_error = P101_ERROR_OPTIONAL;
     result         = p101_mkdir(env, optional_error, path, REPORT_DIR_MODE);
     actual_error   = errno;
 
