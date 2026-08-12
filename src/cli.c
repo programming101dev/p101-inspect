@@ -186,7 +186,7 @@ void p101_observe_usage(const struct p101_env *env, struct p101_error *err, cons
     p101_fputs(env, err, "  -R                       Opt in to call-result values (may contain sensitive data)\n", stderr);
     p101_fputs(env, err, "  -o <capture-dir>         Directory to create for captured evidence\n", stderr);
     p101_fputs(env, err, "                           (default: inspect-capture-<pid>)\n", stderr);
-    p101_fputs(env, err, "\nUse scripts/runtime/p101-run.py to capture and analyze in one command.\n", stderr);
+    p101_fputs(env, err, "\nUse p101-inspect run to capture and analyze in one command.\n", stderr);
 #else
     (void)exit_code;
     (void)message;
