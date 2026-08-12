@@ -1,6 +1,6 @@
 set(PROJECT_NAME "p101-inspect")
-set(PROJECT_VERSION "2.0.0")
-set(PROJECT_DESCRIPTION "Captures program events for interactive inspection")
+set(PROJECT_VERSION "3.0.0")
+set(PROJECT_DESCRIPTION "Captures, analyzes, verifies, and presents program events")
 set(PROJECT_LANGUAGE "C")
 
 set(CMAKE_C_STANDARD 17)
@@ -25,7 +25,7 @@ set(BSD_STANDARD_FLAGS
 )
 
 # Define targets
-set(EXECUTABLE_TARGETS inspect_capture)
+set(EXECUTABLE_TARGETS inspect_capture p101_inspect)
 set(LIBRARY_TARGETS "")
 set(inspect_capture_OUTPUT_NAME inspect-capture)
 
@@ -63,4 +63,15 @@ set(inspect_capture_LINK_LIBRARIES
         p101_time
         p101_util
         m
+)
+
+set(p101_inspect_OUTPUT_NAME p101-inspect)
+
+set(p101_inspect_SOURCES
+        src/inspect_main.c
+)
+
+set(p101_inspect_LINK_LIBRARIES
+        p101_error
+        p101_tool_event
 )

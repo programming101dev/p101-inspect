@@ -1,0 +1,4 @@
+# Darwin exposes the current process environment through this accessor rather
+# than a portable function.  It is read-only bootstrap state used to preserve
+# the environment across the native analyzer's posix_spawnp boundary.
+src/inspect_main.c		c:@F@_NSGetEnviron

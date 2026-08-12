@@ -76,3 +76,13 @@ target_link_libraries(p101_observe_coverage_cli PRIVATE ${_P101_RESOLVED} m)
 target_compile_options(p101_observe_coverage_cli PRIVATE ${_COV})
 target_link_options(p101_observe_coverage_cli PRIVATE ${_COV})
 add_test(NAME test_cli COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/test_cli.sh" "$<TARGET_FILE:p101_observe_coverage_cli>")
+
+add_executable(p101_inspect_coverage_cli ../src/inspect_main.c)
+target_include_directories(p101_inspect_coverage_cli PRIVATE ${_P101_INC_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/../include")
+target_link_libraries(p101_inspect_coverage_cli PRIVATE ${_P101_RESOLVED} m)
+target_compile_options(p101_inspect_coverage_cli PRIVATE ${_COV})
+target_link_options(p101_inspect_coverage_cli PRIVATE ${_COV})
+add_test(NAME test_native_cli
+        COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/test_native_cli.sh"
+                "$<TARGET_FILE:p101_inspect_coverage_cli>"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../../../libraries/lib_tool_event/test/fixtures")
