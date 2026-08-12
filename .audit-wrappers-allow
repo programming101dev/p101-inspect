@@ -1,0 +1,35 @@
+# p101-inspect is the offline bootstrap analyzer for captures produced by the
+# instrumented wrapper stack.  It deliberately links only lib_error and
+# lib_tool_event: creating a p101_env here would make analysis emit observations
+# about itself and would introduce p101-inspect -> lib_env -> lib_tool_event
+# feedback into the mechanism it is validating.  These semantic declaration
+# identities are therefore the complete admitted host-runtime boundary for the
+# native analyzer; additions remain strict-audit failures until reviewed here.
+src/inspect_main.c		c:@F@calloc
+src/inspect_main.c		c:@F@fclose
+src/inspect_main.c		c:@F@ferror
+src/inspect_main.c		c:@F@fgetc
+src/inspect_main.c		c:@F@fgets
+src/inspect_main.c		c:@F@fnmatch
+src/inspect_main.c		c:@F@fopen
+src/inspect_main.c		c:@F@fprintf
+src/inspect_main.c		c:@F@fputs
+src/inspect_main.c		c:@F@fread
+src/inspect_main.c		c:@F@free
+src/inspect_main.c		c:@F@fwrite
+src/inspect_main.c		c:@F@lstat
+src/inspect_main.c		c:@F@memset
+src/inspect_main.c		c:@F@mkdir
+src/inspect_main.c		c:@F@posix_spawnp
+src/inspect_main.c		c:@F@qsort
+src/inspect_main.c		c:@F@snprintf
+src/inspect_main.c		c:@F@strchr
+src/inspect_main.c		c:@F@strcmp
+src/inspect_main.c		c:@F@strlen
+src/inspect_main.c		c:@F@strncmp
+src/inspect_main.c		c:@F@strrchr
+src/inspect_main.c		c:@F@strstr
+src/inspect_main.c		c:@F@strtol
+src/inspect_main.c		c:@F@strtoul
+src/inspect_main.c		c:@F@strtoumax
+src/inspect_main.c		c:@F@waitpid
