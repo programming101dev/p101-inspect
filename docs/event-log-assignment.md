@@ -49,6 +49,6 @@ Then do the same state-machine exercise for allocations:
 ## Instructor note
 
 This assignment teaches the same state-machine reasoning used by
-the canonical `scripts/runtime/p101-analyze.py` resource policy, without requiring students to understand the full
+the canonical `p101-inspect analyze` resource policy, without requiring students to understand the full
 implementation first. The point is not to write the fastest analyzer; the point
 is to make ownership visible.

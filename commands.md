@@ -9,7 +9,7 @@ Run `./change-compiler.sh -c <compiler>` once before building.
 | --- | --- |
 | `inspect-capture -- ./prog` | Run `./prog` and capture p101 resource/call logs |
 | `inspect-capture -o capture -- ./prog arg` | Write immutable evidence to `capture/` |
-| `scripts/runtime/p101-run.py -o analysis -- ./prog` | Capture and analyze through the canonical composition |
+| `p101-inspect run -o analysis -- ./prog` | Capture and analyze through the canonical native composition |
 | `inspect-capture -v -- ./prog` | Verbose: trace `inspect-capture` itself |
 
 Each capture directory includes `manifest.txt` for reproducibility,

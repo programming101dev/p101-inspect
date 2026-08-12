@@ -33,7 +33,7 @@ void p101_observe_write_summary_file(const struct p101_env *env, struct p101_err
     p101_fputs(env, err, "====================\n\n", stream);
     p101_fprintf(env, err, stream, "command: %s\n", args->command_argv[0]);
     p101_fprintf(env, err, stream, "report_dir: %s\n\n", paths->dir);
-    p101_fputs(env, err, "analysis: deferred to scripts/runtime/p101-analyze.py\n", stream);
+    p101_fputs(env, err, "analysis: deferred to p101-inspect analyze\n", stream);
     p101_observe_print_status(env, err, stream, "command", result->command_status);
 
     p101_fputs(env, err, "\nfiles:\n", stream);
