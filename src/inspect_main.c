@@ -258,7 +258,7 @@ static int lesson_command(int argc, char *argv[])
         p101_single_result_ = EXIT_FINDINGS;
         goto p101_single_exit_;
     }
-    operation_status = printf("%s\n  lesson: %s\n  path: %s\n  url: %s\n", definition->id, definition->lesson_id, definition->lesson_path, definition->lesson_url);
+    operation_status = fprintf(stdout, "%s\n  lesson: %s\n  path: %s\n  url: %s\n", definition->id, definition->lesson_id, definition->lesson_path, definition->lesson_url);
     if(operation_status >= 0)
     {
         p101_single_result_ = EXIT_SUCCESS;
