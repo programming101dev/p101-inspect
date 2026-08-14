@@ -54,6 +54,7 @@ set(inspect_capture_LINK_LIBRARIES
         p101_error
         p101_env
         p101_tool_event
+        p101_tool_support
         p101_c
         p101_cli
         p101_filesystem
@@ -61,7 +62,7 @@ set(inspect_capture_LINK_LIBRARIES
         p101_io
         p101_process
         p101_time
-        p101_util
+        p101_subprocess
         m
 )
 
@@ -74,4 +75,5 @@ set(p101_inspect_SOURCES
 set(p101_inspect_LINK_LIBRARIES
         p101_error
         p101_tool_event
+        p101_tool_support
 )

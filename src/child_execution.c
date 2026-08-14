@@ -11,7 +11,7 @@
 #include <p101_process/sys/p101_resource.h>
 #include <p101_process/sys/p101_times.h>
 #include <p101_process/sys/p101_wait.h>
-#include <p101_util/tool_run.h>
+#include <p101_subprocess/tool_run.h>
 
 struct observed_child_context
 {

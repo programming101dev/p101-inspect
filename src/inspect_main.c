@@ -4,10 +4,10 @@
 #include <limits.h>
 #include <p101_error/error.h>
 #include <p101_tool_event/analysis.h>
-#include <p101_tool_event/lesson_catalog.h>
 #include <p101_tool_event/model.h>
-#include <p101_tool_event/receipt.h>
-#include <p101_tool_event/report.h>
+#include <p101_tool_support/lesson_catalog.h>
+#include <p101_tool_support/receipt.h>
+#include <p101_tool_support/report.h>
 #include <spawn.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -91,6 +91,7 @@ static int                                run_command(int argc, char *argv[]);
 static int                                view_command(int argc, char *argv[]);
 static int                                model_command(int argc, char *argv[]);
 static int                                interleaving_command(int argc, char *argv[]);
+static int                                lesson_command(int argc, char *argv[]);
 static int                                verify_capture(struct p101_error *err, const char *directory, int *command_status);
 static int                                verify_artifact(struct p101_error *err, const char *directory, const char *line, struct artifact *artifacts, size_t artifact_count);
 static int                                parse_artifact_line(const char *line, const char **role, size_t *role_length, size_t *bytes, size_t *records, int *final_newline, uint64_t *hash);
@@ -170,27 +171,35 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        comparison = strcmp(argv[1], "capture");
+                        comparison = strcmp(argv[1], "lesson");
                         if(comparison == 0)
                         {
-                            argv[1]             = capture_program;
-                            p101_single_result_ = spawn_and_wait(argv + 1);
+                            p101_single_result_ = lesson_command(argc - 1, argv + 1);
                         }
                         else
                         {
-                            comparison = strcmp(argv[1], "-h");
-                            if(comparison != 0)
-                            {
-                                comparison = strcmp(argv[1], "--help");
-                            }
+                            comparison = strcmp(argv[1], "capture");
                             if(comparison == 0)
                             {
-                                usage(stdout, argv[0]);
-                                p101_single_result_ = EXIT_SUCCESS;
+                                argv[1]             = capture_program;
+                                p101_single_result_ = spawn_and_wait(argv + 1);
                             }
                             else
                             {
-                                usage(stderr, argv[0]);
+                                comparison = strcmp(argv[1], "-h");
+                                if(comparison != 0)
+                                {
+                                    comparison = strcmp(argv[1], "--help");
+                                }
+                                if(comparison == 0)
+                                {
+                                    usage(stdout, argv[0]);
+                                    p101_single_result_ = EXIT_SUCCESS;
+                                }
+                                else
+                                {
+                                    usage(stderr, argv[0]);
+                                }
                             }
                         }
                     }
@@ -215,7 +224,9 @@ static void usage(FILE *stream, const char *program)
                                "  %s view [-d:human|json|human,json] [-m|-s] [-o file] resource|sync|trace|report analysis\n"
                                "  %s model verify analysis\n"
                                "  %s model compare before after\n"
-                               "  %s interleaving analysis\n",
+                               "  %s interleaving analysis\n"
+                               "  %s lesson FINDING-ID\n",
+                               program,
                                program,
                                program,
                                program,
@@ -224,6 +235,37 @@ static void usage(FILE *stream, const char *program)
                                program,
                                program);
     (void)operation_status;
+}
+
+static int lesson_command(int argc, char *argv[])
+{
+    const struct p101_tool_rule_definition *definition;
+    int                                     p101_single_result_;
+    int                                     operation_status;
+
+    p101_single_result_ = EXIT_TROUBLE;
+    if(argc != 2)
+    {
+        operation_status = fprintf(stderr, "Usage: p101-inspect lesson FINDING-ID\n");
+        (void)operation_status;
+        goto p101_single_exit_;
+    }
+    definition = p101_tool_rule_definition_lookup_id(argv[1]);
+    if(definition == NULL)
+    {
+        operation_status = fprintf(stderr, "%s:1:1: error: finding has no registered lesson [%s]\n", argv[1], argv[1]);
+        (void)operation_status;
+        p101_single_result_ = EXIT_FINDINGS;
+        goto p101_single_exit_;
+    }
+    operation_status = printf("%s\n  lesson: %s\n  path: %s\n  url: %s\n", definition->id, definition->lesson_id, definition->lesson_path, definition->lesson_url);
+    if(operation_status >= 0)
+    {
+        p101_single_result_ = EXIT_SUCCESS;
+    }
+
+p101_single_exit_:
+    return p101_single_result_;
 }
 
 // cppcheck-suppress constParameter ; keep the main-compatible argument-vector type.

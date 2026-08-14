@@ -28,6 +28,10 @@ cp "$fixtures/model-calls.log" "$work/capture/calls.log"
 
 expect 0 --help
 expect 2 --p101-deliberately-invalid-option
+expect 0 lesson P101-API-001
+grep -q 'P101-LESSON-API-COMPATIBILITY' "$work/stdout"
+expect 1 lesson P101-NOT-REGISTERED
+grep -q 'finding has no registered lesson' "$work/stderr"
 expect 0 analyze --force -o "$work/analysis" "$work/capture"
 test -s "$work/analysis/run-model.json"
 test -s "$work/analysis/resource-report.json"
