@@ -26,7 +26,7 @@ counterexamples; it is not an exhaustive concurrency proof.
 ## Evidence
 
 ```sh
-./change-compiler.sh -c clang
-./build.sh
-./test.sh
+cmake -S . -B build -DCMAKE_C_COMPILER=clang -DP101_BUILD_LEVEL=1
+cmake --build build
+cmake -S . -B build -DP101_BUILD_LEVEL=2 && cmake --build build
 ```
