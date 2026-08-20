@@ -5,6 +5,7 @@
 #include <p101_error/error.h>
 #include <p101_tool_event/analysis.h>
 #include <p101_tool_event/model.h>
+#include <p101_tool_support/diagnostic.h>
 #include <p101_tool_support/lesson_catalog.h>
 #include <p101_tool_support/receipt.h>
 #include <p101_tool_support/report.h>
@@ -2559,10 +2560,26 @@ static int model_verify(const char *directory, const char *expectations)
         expectation_checked:
             if(!satisfied)
             {
-                int diagnostic_status;
+                struct p101_tool_diagnostic diagnostic;
+                char                        message[RECEIPT_LINE_SIZE];
+                int                         diagnostic_status;
 
-                diagnostic_status = fprintf(stderr, "%s:%zu:1: error: expectation not satisfied: %s=%s [P101-EXPECT-001]\n", expectations, line_number, key, value);
-                (void)diagnostic_status;
+                diagnostic_status = snprintf(message, sizeof(message), "expectation not satisfied: %s=%s", key, value);
+                if(diagnostic_status < 0 || (size_t)diagnostic_status >= sizeof(message))
+                {
+                    operation_status = -1;
+                    break;
+                }
+                diagnostic_status = p101_tool_diagnostic_initialize_id(&diagnostic, "P101-EXPECT-001", P101_TOOL_DIAGNOSTIC_ERROR, expectations, line_number, 1U, "", message);
+                if(diagnostic_status == 0)
+                {
+                    diagnostic_status = p101_tool_diagnostic_write(stderr, P101_TOOL_DIAGNOSTIC_TEXT, &diagnostic);
+                }
+                if(diagnostic_status != 0)
+                {
+                    operation_status = -1;
+                    break;
+                }
                 failures++;
             }
         next_expectation:
