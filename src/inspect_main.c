@@ -72,7 +72,6 @@ struct rule_definition
     const char *kind;
     const char *pattern;
     const char *title;
-    const char *lesson;
 };
 
 struct rule_pack_definition
@@ -2683,10 +2682,28 @@ static int model_check(const char *directory, int argc, char *const argv[])
             }
             if(violated)
             {
-                int io_status;
+                struct p101_tool_diagnostic diagnostic;
+                char                        message[RECEIPT_LINE_SIZE];
+                int                         diagnostic_status;
 
-                io_status = fprintf(stdout, "%s:1:1: error: %s [%s]\n  pattern: %s\n  lesson: %s\n", directory, rule->title, rule->identifier, rule->pattern, rule->lesson);
-                (void)io_status;
+                diagnostic_status = snprintf(message, sizeof(message), "%s; forbidden pattern: %s", rule->title, rule->pattern);
+                if(diagnostic_status < 0 || (size_t)diagnostic_status >= sizeof(message))
+                {
+                    unload_analysis(&loaded);
+                    p101_single_result_ = EXIT_TROUBLE;
+                    goto p101_single_exit_;
+                }
+                diagnostic_status = p101_tool_diagnostic_initialize_id(&diagnostic, rule->identifier, P101_TOOL_DIAGNOSTIC_ERROR, directory, 1U, 1U, "", message);
+                if(diagnostic_status == 0)
+                {
+                    diagnostic_status = p101_tool_diagnostic_write(stderr, P101_TOOL_DIAGNOSTIC_TEXT, &diagnostic);
+                }
+                if(diagnostic_status != 0)
+                {
+                    unload_analysis(&loaded);
+                    p101_single_result_ = EXIT_TROUBLE;
+                    goto p101_single_exit_;
+                }
                 violations++;
             }
         }

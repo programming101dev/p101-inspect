@@ -2,22 +2,22 @@
 
 static const struct rule_definition rule_pack_concurrency[] =
 {
-    {"P101-POLICY-SYNC-001", "forbid-finding", "P101-SYNC-*", "Synchronization behavior is not clean", "docs/rule-packs.md#synchronization-discipline"},
+    {"P101-POLICY-SYNC-001", "forbid-finding", "P101-SYNC-*", "Synchronization behavior is not clean"},
 };
 
 static const struct rule_definition rule_pack_resource_clean[] =
 {
-    {"P101-POLICY-RESOURCE-001", "forbid-finding", "P101-FD-*", "Descriptor ownership is not clean", "docs/rule-packs.md#descriptor-ownership"},
-    {"P101-POLICY-RESOURCE-002", "forbid-finding", "P101-ALLOC-*", "Allocation ownership is not clean", "docs/rule-packs.md#allocation-ownership"},
-    {"P101-POLICY-RESOURCE-003", "forbid-finding", "P101-RESOURCE-*", "Generic resource ownership is not clean", "docs/rule-packs.md#generic-resource-ownership"},
+    {"P101-POLICY-RESOURCE-001", "forbid-finding", "P101-FD-*", "Descriptor ownership is not clean"},
+    {"P101-POLICY-RESOURCE-002", "forbid-finding", "P101-ALLOC-*", "Allocation ownership is not clean"},
+    {"P101-POLICY-RESOURCE-003", "forbid-finding", "P101-RESOURCE-*", "Generic resource ownership is not clean"},
 };
 
 static const struct rule_definition rule_pack_secure_c[] =
 {
-    {"P101-POLICY-SECURE-001", "forbid-finding", "P101-FD-*", "Descriptor misuse can cross a trust boundary", "docs/rule-packs.md#security-boundary"},
-    {"P101-POLICY-SECURE-002", "forbid-finding", "P101-ALLOC-*", "Allocation misuse can corrupt memory", "docs/rule-packs.md#security-boundary"},
-    {"P101-POLICY-SECURE-003", "forbid-finding", "P101-RES-*", "Resource ownership is ambiguous", "docs/rule-packs.md#security-boundary"},
-    {"P101-POLICY-SECURE-004", "forbid-finding", "P101-SYNC-*", "Observed synchronization is unsafe", "docs/rule-packs.md#security-boundary"},
+    {"P101-POLICY-SECURE-001", "forbid-finding", "P101-FD-*", "Descriptor misuse can cross a trust boundary"},
+    {"P101-POLICY-SECURE-002", "forbid-finding", "P101-ALLOC-*", "Allocation misuse can corrupt memory"},
+    {"P101-POLICY-SECURE-003", "forbid-finding", "P101-RESOURCE-*", "Resource ownership is ambiguous"},
+    {"P101-POLICY-SECURE-004", "forbid-finding", "P101-SYNC-*", "Observed synchronization is unsafe"},
 };
 
 static const struct rule_pack_definition rule_packs[] =

@@ -86,6 +86,27 @@ expect 0 analyze --force -o "$work/sync-analysis" "$work/sync-capture"
 expect 1 interleaving "$work/sync-analysis"
 grep -q 'P101-SYNC-002' "$work/stdout"
 
+mkdir -p "$work/policy-sync-capture"
+: >"$work/policy-sync-capture/stderr.txt"
+cat >"$work/policy-sync-capture/resources.log" <<'EOF'
+P101RESOURCE	5	policy-sync-run	10	1	1	100	100	ACQUIRE	pthread-mutex-held	A	-	0	thread=1	1	thread_one	threads.c
+P101RESOURCE	5	policy-sync-run	10	1	2	110	110	ACQUIRE	pthread-mutex-wait	B	-	0	thread=1	2	thread_one	threads.c
+P101RESOURCE	5	policy-sync-run	10	2	3	120	120	ACQUIRE	pthread-mutex-held	B	-	0	thread=2	3	thread_two	threads.c
+P101RESOURCE	5	policy-sync-run	10	2	4	130	130	ACQUIRE	pthread-mutex-wait	A	-	0	thread=2	4	thread_two	threads.c
+P101COMPLETE	5	policy-sync-run	10	1	5	140	140	2	0	0
+P101COMPLETE	5	policy-sync-run	10	2	6	150	150	2	0	0
+EOF
+cat >"$work/policy-sync-capture/calls.log" <<'EOF'
+P101COMPLETE	5	policy-sync-run	10	1	5	140	140	0	0	0
+P101COMPLETE	5	policy-sync-run	10	2	6	150	150	0	0	0
+EOF
+expect 1 analyze --force -o "$work/policy-sync-analysis" "$work/policy-sync-capture"
+expect 1 model check "$work/policy-sync-analysis" --rules concurrency
+grep -q 'P101-POLICY-SYNC-001' "$work/stderr"
+grep -q 'lessons/policy-expectations.md#P101-POLICY-SYNC-001' "$work/stderr"
+expect 1 model check "$work/policy-sync-analysis" --rules secure-c
+grep -q 'P101-POLICY-SECURE-004' "$work/stderr"
+
 mkdir -p "$work/leak-capture"
 : >"$work/leak-capture/stderr.txt"
 cat >"$work/leak-capture/resources.log" <<'EOF'
@@ -98,5 +119,35 @@ EOF
 expect 1 analyze --force -o "$work/leak-analysis" "$work/leak-capture"
 expect 1 view resource "$work/leak-analysis"
 expect 0 view sync "$work/leak-analysis"
+expect 1 model check "$work/leak-analysis" --rules resource-clean
+grep -q 'P101-POLICY-RESOURCE-002' "$work/stderr"
+expect 1 model check "$work/leak-analysis" --rules secure-c
+grep -q 'P101-POLICY-SECURE-002' "$work/stderr"
+
+mkdir -p "$work/fd-capture"
+: >"$work/fd-capture/stderr.txt"
+cat >"$work/fd-capture/resources.log" <<'EOF'
+P101FD	5	fd-run	10	1	1	100	100	OPEN	5	1	main	fd.c
+P101COMPLETE	5	fd-run	10	1	2	110	110	1	0	0
+EOF
+cat >"$work/fd-capture/calls.log" <<'EOF'
+P101COMPLETE	5	fd-run	10	1	2	110	110	0	0	0
+EOF
+expect 1 analyze --force -o "$work/fd-analysis" "$work/fd-capture"
+expect 1 model check "$work/fd-analysis" --rules secure-c
+grep -q 'P101-POLICY-SECURE-001' "$work/stderr"
+
+mkdir -p "$work/resource-capture"
+: >"$work/resource-capture/stderr.txt"
+cat >"$work/resource-capture/resources.log" <<'EOF'
+P101RESOURCE	5	resource-run	10	1	1	100	100	ACQUIRE	custom-resource	handle	-	0	-	1	main	resource.c
+P101COMPLETE	5	resource-run	10	1	2	110	110	1	0	0
+EOF
+cat >"$work/resource-capture/calls.log" <<'EOF'
+P101COMPLETE	5	resource-run	10	1	2	110	110	0	0	0
+EOF
+expect 1 analyze --force -o "$work/resource-analysis" "$work/resource-capture"
+expect 1 model check "$work/resource-analysis" --rules secure-c
+grep -q 'P101-POLICY-SECURE-003' "$work/stderr"
 
 printf 'p101-inspect native CLI regression: PASS\n'
